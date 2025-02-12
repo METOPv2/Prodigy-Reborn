@@ -1,0 +1,3 @@
+[configuration]
+include = ["src"]
+allow_globals = true

@@ -1,0 +1,15 @@
+{
+    "[lua]": {
+        "editor.defaultFormatter": "JohnnyMorganz.stylua",
+        "editor.formatOnPaste": true,
+        "editor.formatOnSave": true
+    },
+    "[json]": {
+        "editor.quickSuggestions": {
+            "strings": true
+        },
+        "editor.suggest.insertMode": "replace",
+        "editor.defaultFormatter": "ClemensPeters.format-json",
+        "editor.formatOnSave": true,
+    }
+}   
