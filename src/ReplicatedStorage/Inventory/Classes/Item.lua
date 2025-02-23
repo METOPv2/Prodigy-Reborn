@@ -229,6 +229,7 @@ function Item:Destroy()
 		self:DecreaseStack()
 	else
 		self.Slot:Destroy()
+		self.ItemRemoved:Fire(self)
 		Item.Items[self.Name] = nil
 	end
 end
