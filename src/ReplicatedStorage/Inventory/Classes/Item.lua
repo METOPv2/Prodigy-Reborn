@@ -7,15 +7,11 @@ local DropItemUI = game.Players.LocalPlayer.PlayerGui.DropItem
 local Holder =
 	game.Players.LocalPlayer.PlayerGui:WaitForChild("Inventory").Container.Container.Items.Container
 local hoverZone = Holder:FindFirstAncestorOfClass("ScreenGui").HoverZone
+
 local Item = {
 	DefaultSlotSize = 69, -- pixels
 	DefaultSlotPadding = 5, -- pixels
-	Borders = {
-		Top = 5, -- pixels
-		Right = 5, -- pixels
-		Bottom = 5, -- pixels
-		Left = 5, -- pixels
-	},
+	Borders = { Top = 5, Right = 5, Bottom = 5, Left = 5 },
 	ItemRemoved = Instance.new("BindableEvent"),
 	Items = {},
 }
@@ -209,7 +205,6 @@ function Item:SetPosition(position: number)
 		0.1,
 		true
 	)
-	-- self.Slot.Position = UDim2.fromOffset(x, y)
 end
 
 function Item:IncreaseStack()
