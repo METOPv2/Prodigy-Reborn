@@ -1,6 +1,7 @@
 local dropItemRemoveEvent = game.ReplicatedStorage.RemoteEvents.DropItem
 local itemDropTemplate = game.ReplicatedStorage.Assets.Drop.Item
 local ItemData = require(game.ReplicatedStorage.Source.Inventory.Data.Items)
+local RaritiesData = require(game.ReplicatedStorage.Source.Inventory.Data.Rarities)
 local droppedItems = {}
 
 local function onDropItem(player, targetItem, amount)
@@ -21,7 +22,10 @@ local function onDropItem(player, targetItem, amount)
 			local itemData = ItemData[item.Name]
 
 			local newItem = itemDropTemplate:Clone()
+			newItem.BillboardGui.Background.Visible = false
 			local billboardGui = newItem.BillboardGui:Clone()
+			billboardGui.Background.ImageColor3 = RaritiesData[itemData.Rarity].Color
+			billboardGui.Background.Visible = true
 			billboardGui.Adornee = newItem
 			billboardGui.Parent = player.PlayerGui.DropItemUI
 			item.Parent = newItem
@@ -36,6 +40,10 @@ local function onDropItem(player, targetItem, amount)
 				local floatingEffectClone = billboardGui.FloatingEffect:Clone()
 				floatingEffectClone.Enabled = true
 				floatingEffectClone.Parent = imageLabel
+
+				local floatingEffectClone2 = billboardGui.FloatingEffect:Clone()
+				floatingEffectClone2.Enabled = true
+				floatingEffectClone2.Parent = billboardGui.Background
 			elseif itemData.Class == "Shoes" then
 				local viewportFrame = Instance.new("ViewportFrame")
 				viewportFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -60,6 +68,10 @@ local function onDropItem(player, targetItem, amount)
 				local floatingEffectClone = billboardGui.FloatingEffect:Clone()
 				floatingEffectClone.Enabled = true
 				floatingEffectClone.Parent = viewportFrame
+
+				local floatingEffectClone2 = billboardGui.FloatingEffect:Clone()
+				floatingEffectClone2.Enabled = true
+				floatingEffectClone2.Parent = billboardGui.Background
 			end
 			newItem.Position = player.Character:GetPivot().Position
 				+ Vector3.new(math.random(-5, 5), 0, 0)
@@ -85,6 +97,8 @@ local function onPlayerAdded(player)
 		newItem.Parent = workspace
 
 		local billboardGui = newItem.BillboardGui:Clone()
+		billboardGui.Background.ImageColor3 = RaritiesData[itemData.Rarity].Color
+		billboardGui.Background.Visible = true
 		billboardGui.Adornee = newItem
 		billboardGui.Parent = player.PlayerGui.DropItemUI
 

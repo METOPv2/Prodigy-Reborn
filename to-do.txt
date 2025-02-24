@@ -1,7 +1,0 @@
-1. (DONE) floating images for any drop
-2. (DONE 1/2) implement shoes into inventory and ability to drop/pick up them
-3. (DONE) add money increment test button
-4. add rarities
-5. add customizations for any stuff
-6. optional: transfer code from rbx to vs
-7. add holding Z to auto collect items
