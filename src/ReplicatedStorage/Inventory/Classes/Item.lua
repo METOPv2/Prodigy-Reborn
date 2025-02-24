@@ -23,24 +23,26 @@ dragScreenUI.ResetOnSpawn = false
 dragScreenUI.DisplayOrder = 10
 dragScreenUI.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
-function Item.new(name: string)
-	assert(ItemsData[name], "Item does not exist")
-	if Holder:FindFirstChild(name) then
-		Item.Items[name]:IncreaseStack()
-		return Item.Items[name]
+function Item.new(itemName: string)
+	assert(ItemsData[itemName], "Item does not exist")
+	local itemData = ItemsData[itemName]
+	if Holder:FindFirstChild(itemName) and not itemData.Unstackable then
+		Item.Items[itemName]:IncreaseStack()
+		return Item.Items[itemName]
 	else
-		local data = ItemsData[name]
 		local self = setmetatable({}, Item)
-		self.Name = name
-		self.DisplayName = data.DisplayName
-		self.ImageID = data.Image
+		self.Name = itemName
+		self.DisplayName = itemData.DisplayName
 		self.Position = 0
 		self.Stack = 1
 		self.Slot = itemSlotTemplate:Clone()
-		self.Slot.Name = name
-		self.Slot.ImageLabel.Image = self.ImageID
+		self.Slot.Name = itemName
 		self.Slot.Position = UDim2.fromOffset(self.Borders.Left, self.Borders.Top)
 		self.Slot.Size = UDim2.fromOffset(Item.DefaultSlotSize, Item.DefaultSlotSize)
+
+		local itemImage = self:GetItemImage(itemName)
+		itemImage.Parent = self.Slot
+
 		self.Slot.Parent = Holder
 		self.IsDragging = false
 		self.Connections = {
@@ -103,8 +105,45 @@ function Item.new(name: string)
 			end),
 		}
 		self:SetPosition(#Holder:GetChildren())
-		Item.Items[name] = self
+		Item.Items[itemName] = self
 		return self
+	end
+end
+
+function Item:GetItemImage(itemName: string)
+	local itemData = ItemsData[itemName]
+	if itemData.Class == "Item" then
+		local imageLabel = Instance.new("ImageLabel")
+		imageLabel.Image = itemData.Image
+		imageLabel.Size = UDim2.fromOffset(50, 50)
+		imageLabel.Position = UDim2.fromScale(0.5, 0.5)
+		imageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+		imageLabel.BackgroundTransparency = 1
+		return imageLabel
+	elseif itemData.Class == "Shoes" then
+		local viewportFrame = Instance.new("ViewportFrame")
+		viewportFrame.Size = UDim2.fromScale(1, 1)
+		viewportFrame.Position = UDim2.fromScale(0.5, 0.5)
+		viewportFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+		viewportFrame.BackgroundTransparency = 1
+
+		local camera = Instance.new("Camera")
+		camera.Parent = viewportFrame
+		viewportFrame.CurrentCamera = camera
+
+		local shoeModel = itemData.Model:Clone()
+		shoeModel.Parent = viewportFrame
+
+		local modelCFrame = shoeModel:GetPivot()
+		local modelSize = shoeModel:GetExtentsSize()
+
+		local cameraDistance = math.max(modelSize.X, modelSize.Y, modelSize.Z) * 1.5
+		camera.CFrame = CFrame.new(
+			modelCFrame.Position + Vector3.new(0, modelSize.Y / 2, cameraDistance),
+			modelCFrame.Position
+		)
+
+		return viewportFrame
 	end
 end
 
@@ -120,12 +159,20 @@ function Item:StartDragging()
 		UserInputService:GetMouseLocation().Y - GuiService.TopbarInset.Height
 	)
 	self.DraggableSlot.ImageTransparency = 1
-	self.DraggableSlot.ImageLabel.ImageTransparency = 0.5
+	if ItemsData[self.Name].Class == "Item" then
+		self.DraggableSlot.ImageLabel.ImageTransparency = 0.5
+	elseif ItemsData[self.Name].Class == "Shoes" then
+		self.DraggableSlot.ViewportFrame.ImageTransparency = 0.5
+	end
 	self.DraggableSlot.Amount:Destroy()
 	self.DraggableSlot.Parent = dragScreenUI
 
 	-- Hide the original slot
-	self.Slot.ImageLabel.ImageTransparency = 1
+	if ItemsData[self.Name].Class == "Item" then
+		self.Slot.ImageLabel.ImageTransparency = 1
+	elseif ItemsData[self.Name].Class == "Shoes" then
+		self.Slot.ViewportFrame.ImageTransparency = 1
+	end
 	self.Slot.Amount.TextTransparency = 0.5
 	self.Slot.Amount.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.Slot.Amount.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -143,7 +190,11 @@ function Item:StopDragging()
 	self.IsDragging = false
 
 	-- Reset slot properties to default
-	self.Slot.ImageLabel.ImageTransparency = 0
+	if ItemsData[self.Name].Class == "Item" then
+		self.Slot.ImageLabel.ImageTransparency = 0
+	elseif ItemsData[self.Name].Class == "Shoes" then
+		self.Slot.ViewportFrame.ImageTransparency = 0
+	end
 	self.Slot.Amount.TextTransparency = 0
 	self.Slot.Amount.AnchorPoint = Vector2.new(1, 1)
 	self.Slot.Amount.Position = UDim2.new(1, -10, 1, -10)
