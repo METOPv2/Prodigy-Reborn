@@ -73,8 +73,7 @@ return {
 	},
 	TraeScottieMochaLow1s = {
 		DisplayName = "Trae Scottie Mocha Low 1s",
-		Image = "",
-		Class = "Shoes",
+		Image = "rbxassetid://131663049024652",
 		Unstackable = true,
 		Model = game.ReplicatedStorage:WaitForChild("Assets").Models.Shoes.TraeScottieMochaLow1s,
 		Rarity = "Common",
