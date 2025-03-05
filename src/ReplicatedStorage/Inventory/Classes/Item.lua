@@ -1,12 +1,17 @@
 local ItemsData = require(game.ReplicatedStorage.Source.Inventory.Data.Items)
-local itemSlotTemplate = game.ReplicatedStorage.Assets.UI.Inventory.ItemSlot
 local GuiService = game:GetService("GuiService")
 local UserInputService = game:GetService("UserInputService")
 local dropItemRemoveEvent = game.ReplicatedStorage.RemoteEvents.DropItem
 local DropItemUI = game.Players.LocalPlayer.PlayerGui.DropItem
-local Holder =
-	game.Players.LocalPlayer.PlayerGui:WaitForChild("Inventory").Container.Container.Items.Container
-local hoverZone = Holder:FindFirstAncestorOfClass("ScreenGui").HoverZone
+local InventoryUI = game.Players.LocalPlayer.PlayerGui:WaitForChild("Inventory")
+local Holder = InventoryUI.Container.Container.Items.Container
+
+local hoverZone = Instance.new("Frame")
+hoverZone.BackgroundTransparency = 1
+hoverZone.Size = UDim2.fromOffset(660, 510)
+hoverZone.Position = UDim2.fromScale(0.5, 0.5)
+hoverZone.AnchorPoint = Vector2.new(0.5, 0.5)
+hoverZone.Parent = InventoryUI
 
 local Item = {
 	DefaultSlotSize = 69, -- pixels
@@ -23,28 +28,61 @@ dragScreenUI.ResetOnSpawn = false
 dragScreenUI.DisplayOrder = 10
 dragScreenUI.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
-function Item.new(itemName: string)
-	assert(ItemsData[itemName], "Item does not exist")
-	local itemData = ItemsData[itemName]
-	if Holder:FindFirstChild(itemName) and not itemData.Unstackable then
-		Item.Items[itemName]:IncreaseStack()
-		return Item.Items[itemName]
+local function CreateSlot(name: string)
+	local itemData = ItemsData[name]
+
+	local slot = Instance.new("ImageButton")
+	slot.Name = name
+	slot.Image = "rbxassetid://77397559355938"
+	slot.BackgroundTransparency = 1
+	slot.Position = UDim2.fromOffset(Item.Borders.Left, Item.Borders.Top)
+	slot.Size = UDim2.fromOffset(Item.DefaultSlotSize, Item.DefaultSlotSize)
+
+	local imageLabel = Instance.new("ImageLabel")
+	imageLabel.Image = itemData.Image
+	imageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	imageLabel.Position = UDim2.fromScale(0.5, 0.5)
+	imageLabel.Size = UDim2.fromOffset(50, 50)
+	imageLabel.BackgroundTransparency = 1
+	imageLabel.Parent = slot
+
+	local amount = Instance.new("TextLabel")
+	amount.Name = "Amount"
+	amount.AnchorPoint = Vector2.new(1, 1)
+	amount.Position = UDim2.new(1, -10, 1, -10)
+	amount.BackgroundTransparency = 1
+	amount.Size = UDim2.fromOffset(20, 20)
+	amount.TextXAlignment = Enum.TextXAlignment.Right
+	amount.TextSize = 24
+	amount.Font = Enum.Font.FredokaOne
+	amount.Text = "?"
+	amount.TextColor3 = Color3.fromRGB(255, 255, 255)
+	amount.TextStrokeTransparency = 1
+	amount.Parent = slot
+
+	slot.Parent = Holder
+	return slot
+end
+
+function Item.new(name: string)
+	assert(ItemsData[name], "Item does not exist")
+
+	local itemData = ItemsData[name]
+
+	-- Check if the item already exists in the inventory
+	if Holder:FindFirstChild(name) then
+		-- Increase the stack of the existing item
+		Item.Items[name]:IncreaseStack()
+		return Item.Items[name]
 	else
+		-- Create a new item
 		local self = setmetatable({}, Item)
-		self.Name = itemName
+		self.Name = name
 		self.DisplayName = itemData.DisplayName
 		self.Position = 0
 		self.Stack = 1
-		self.Slot = itemSlotTemplate:Clone()
-		self.Slot.Name = itemName
-		self.Slot.Position = UDim2.fromOffset(self.Borders.Left, self.Borders.Top)
-		self.Slot.Size = UDim2.fromOffset(Item.DefaultSlotSize, Item.DefaultSlotSize)
-
-		local itemImage = self:GetItemImage(itemName)
-		itemImage.Parent = self.Slot
-
-		self.Slot.Parent = Holder
 		self.IsDragging = false
+		self.Slot = CreateSlot(name)
 		self.Connections = {
 			self.ItemRemoved.Event:Connect(function(item)
 				if item.Position < self.Position and item ~= self then
@@ -55,15 +93,17 @@ function Item.new(itemName: string)
 				self:StartDragging()
 			end),
 			UserInputService.InputChanged:Connect(function(input)
-				if self.IsDragging then
-					self.DraggableSlot:TweenPosition(
-						UDim2.fromOffset(input.Position.X, input.Position.Y),
-						Enum.EasingDirection.Out,
-						Enum.EasingStyle.Quad,
-						0.1,
-						true
-					)
+				if not self.IsDragging then
+					return
 				end
+
+				self.DraggableSlot:TweenPosition(
+					UDim2.fromOffset(input.Position.X, input.Position.Y),
+					Enum.EasingDirection.Out,
+					Enum.EasingStyle.Quad,
+					0.1,
+					true
+				)
 			end),
 			UserInputService.InputEnded:Connect(function(input)
 				if
@@ -72,8 +112,10 @@ function Item.new(itemName: string)
 				then
 					return
 				end
+
 				if self:IsDraggingOverInventory(input) then
 					local isDraggingOverItem, item = self:IsDraggingOverItem(input)
+
 					if isDraggingOverItem then
 						self:SwipePositionsWithOtherItem(item)
 						self:StopDragging()
@@ -105,45 +147,8 @@ function Item.new(itemName: string)
 			end),
 		}
 		self:SetPosition(#Holder:GetChildren())
-		Item.Items[itemName] = self
+		Item.Items[name] = self
 		return self
-	end
-end
-
-function Item:GetItemImage(itemName: string)
-	local itemData = ItemsData[itemName]
-	if itemData.Class == "Item" then
-		local imageLabel = Instance.new("ImageLabel")
-		imageLabel.Image = itemData.Image
-		imageLabel.Size = UDim2.fromOffset(50, 50)
-		imageLabel.Position = UDim2.fromScale(0.5, 0.5)
-		imageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-		imageLabel.BackgroundTransparency = 1
-		return imageLabel
-	elseif itemData.Class == "Shoes" then
-		local viewportFrame = Instance.new("ViewportFrame")
-		viewportFrame.Size = UDim2.fromScale(1, 1)
-		viewportFrame.Position = UDim2.fromScale(0.5, 0.5)
-		viewportFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-		viewportFrame.BackgroundTransparency = 1
-
-		local camera = Instance.new("Camera")
-		camera.Parent = viewportFrame
-		viewportFrame.CurrentCamera = camera
-
-		local shoeModel = itemData.Model:Clone()
-		shoeModel.Parent = viewportFrame
-
-		local modelCFrame = shoeModel:GetPivot()
-		local modelSize = shoeModel:GetExtentsSize()
-
-		local cameraDistance = math.max(modelSize.X, modelSize.Y, modelSize.Z) * 1.5
-		camera.CFrame = CFrame.new(
-			modelCFrame.Position + Vector3.new(0, modelSize.Y / 2, cameraDistance),
-			modelCFrame.Position
-		)
-
-		return viewportFrame
 	end
 end
 
@@ -151,28 +156,20 @@ function Item:StartDragging()
 	assert(not self.IsDragging, "Item is already being dragged")
 	self.IsDragging = true
 
+	local mouseLocation = UserInputService:GetMouseLocation()
+	local topbarInset = GuiService.TopbarInset.Height
+
 	-- Create a draggable slot
 	self.DraggableSlot = self.Slot:Clone()
 	self.DraggableSlot.AnchorPoint = Vector2.new(0.5, 0.5)
-	self.DraggableSlot.Position = UDim2.fromOffset(
-		UserInputService:GetMouseLocation().X,
-		UserInputService:GetMouseLocation().Y - GuiService.TopbarInset.Height
-	)
 	self.DraggableSlot.ImageTransparency = 1
-	if ItemsData[self.Name].Class == "Item" then
-		self.DraggableSlot.ImageLabel.ImageTransparency = 0.5
-	elseif ItemsData[self.Name].Class == "Shoes" then
-		self.DraggableSlot.ViewportFrame.ImageTransparency = 0.5
-	end
+	self.DraggableSlot.ImageLabel.ImageTransparency = 0.5
 	self.DraggableSlot.Amount:Destroy()
+	self.DraggableSlot.Position = UDim2.fromOffset(mouseLocation.X, mouseLocation.Y - topbarInset)
 	self.DraggableSlot.Parent = dragScreenUI
 
 	-- Hide the original slot
-	if ItemsData[self.Name].Class == "Item" then
-		self.Slot.ImageLabel.ImageTransparency = 1
-	elseif ItemsData[self.Name].Class == "Shoes" then
-		self.Slot.ViewportFrame.ImageTransparency = 1
-	end
+	self.Slot.ImageLabel.ImageTransparency = 1
 	self.Slot.Amount.TextTransparency = 0.5
 	self.Slot.Amount.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.Slot.Amount.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -190,11 +187,7 @@ function Item:StopDragging()
 	self.IsDragging = false
 
 	-- Reset slot properties to default
-	if ItemsData[self.Name].Class == "Item" then
-		self.Slot.ImageLabel.ImageTransparency = 0
-	elseif ItemsData[self.Name].Class == "Shoes" then
-		self.Slot.ViewportFrame.ImageTransparency = 0
-	end
+	self.Slot.ImageLabel.ImageTransparency = 0
 	self.Slot.Amount.TextTransparency = 0
 	self.Slot.Amount.AnchorPoint = Vector2.new(1, 1)
 	self.Slot.Amount.Position = UDim2.new(1, -10, 1, -10)
@@ -212,31 +205,35 @@ function Item:IsDraggingOverInventory(input: InputObject)
 	assert(self.IsDragging, "Item is not being dragged")
 	local hoverZoneSize: Vector2 = hoverZone.AbsoluteSize
 	local hoverZonePosition: Vector2 = hoverZone.AbsolutePosition
-	local absolutePosition = input.Position
-	return absolutePosition.X >= hoverZonePosition.X
-		and absolutePosition.X <= hoverZonePosition.X + hoverZoneSize.X
-		and absolutePosition.Y >= hoverZonePosition.Y
-		and absolutePosition.Y <= hoverZonePosition.Y + hoverZoneSize.Y
+	local inputPosition = input.Position
+	return inputPosition.X >= hoverZonePosition.X
+		and inputPosition.X <= hoverZonePosition.X + hoverZoneSize.X
+		and inputPosition.Y >= hoverZonePosition.Y
+		and inputPosition.Y <= hoverZonePosition.Y + hoverZoneSize.Y
 end
 
 function Item:IsDraggingOverItem(input: InputObject)
 	assert(self.IsDragging, "Item is not being dragged")
-	for _, item in pairs(Item.Items) do
-		if item ~= self then
-			local itemPosition = item.Slot.AbsolutePosition
-			local itemSize = item.Slot.AbsoluteSize
-			local draggablePosition = input.Position
 
-			if
-				draggablePosition.X >= itemPosition.X
-				and draggablePosition.X <= itemPosition.X + itemSize.X
-				and draggablePosition.Y >= itemPosition.Y
-				and draggablePosition.Y <= itemPosition.Y + itemSize.Y
-			then
-				return true, item
-			end
+	for _, item in pairs(Item.Items) do
+		if item == self then
+			continue
+		end
+
+		local itemPosition = item.Slot.AbsolutePosition
+		local itemSize = item.Slot.AbsoluteSize
+		local inputPosition = input.Position
+
+		if
+			inputPosition.X >= itemPosition.X
+			and inputPosition.X <= itemPosition.X + itemSize.X
+			and inputPosition.Y >= itemPosition.Y
+			and inputPosition.Y <= itemPosition.Y + itemSize.Y
+		then
+			return true, item
 		end
 	end
+
 	return false, nil
 end
 
