@@ -1,2 +1,4 @@
-column_width = 100
-quote_style = "AutoPreferDouble"
+# General Formatting
+indent_type = "Spaces"      # "Spaces" or "Tabs"
+indent_width = 4            # Number of spaces per indentation level
+column_width = 150          # Maximum column width before wrapping

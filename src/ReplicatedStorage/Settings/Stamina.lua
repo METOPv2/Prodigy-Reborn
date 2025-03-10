@@ -1,0 +1,3 @@
+return {
+    RegenStaminaPerSecond = 10,
+}

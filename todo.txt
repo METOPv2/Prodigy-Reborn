@@ -1,0 +1,2 @@
+1. recreate stamina system (server side connected replicatedstorage/modulescripts/staminamanager)
+2. update laying and dashing animations
