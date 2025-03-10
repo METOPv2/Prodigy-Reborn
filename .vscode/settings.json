@@ -9,7 +9,7 @@
             "strings": true
         },
         "editor.suggest.insertMode": "replace",
-        "editor.defaultFormatter": "ClemensPeters.format-json",
+        "editor.defaultFormatter": "vscode.json-language-features",
         "editor.formatOnSave": true,
     }
 }   
