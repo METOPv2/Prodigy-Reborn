@@ -55,9 +55,9 @@ local function CreateSlot(name: string)
     amount.AnchorPoint = Vector2.new(1, 1)
     amount.Position = UDim2.new(1, -10, 1, -10)
     amount.BackgroundTransparency = 1
-    amount.Size = UDim2.fromOffset(20, 20)
+    amount.Size = UDim2.fromOffset(10, 10)
     amount.TextXAlignment = Enum.TextXAlignment.Right
-    amount.TextSize = 24
+    amount.TextSize = 14
     amount.Font = Enum.Font.FredokaOne
     amount.Text = "?"
     amount.TextColor3 = Color3.fromRGB(255, 255, 255)

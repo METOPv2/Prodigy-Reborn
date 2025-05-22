@@ -21,6 +21,7 @@ function CurrencyModule.SpawnCash(position: Vector3, amount: number)
         part.BrickColor = BrickColor.Red()
         part.Velocity = Vector3.new(Random.new():NextNumber(-20, 20), 0, 0)
         part.CollisionGroup = "Player"
+        part.Transparency = 1
         part.Parent = workspace
 
         local billboard = MoneyBillboardUIAsset:Clone()
@@ -28,16 +29,22 @@ function CurrencyModule.SpawnCash(position: Vector3, amount: number)
             billboard.ImageLabel.Image = MoneyImages.Coin
         elseif amount < 100000 then
             billboard.ImageLabel.Image = MoneyImages.Cash
+            billboard.Size = UDim2.new(0, 40, 0, 40)
         else
             billboard.ImageLabel.Image = MoneyImages.MoneyBag
+            billboard.Size = UDim2.new(0, 50, 0, 50)
         end
         billboard.Parent = part
 
+        -- TODO: rewrite picking up of items system
         local proximityPrompt = Instance.new("ProximityPrompt")
-        proximityPrompt.ActionText = "Pick up"
-        proximityPrompt.ObjectText = string.format("%.2f", money)
         proximityPrompt.RequiresLineOfSight = false
         proximityPrompt.HoldDuration = 0
+        proximityPrompt.MaxActivationDistance = 3
+        proximityPrompt.KeyboardKeyCode = Enum.KeyCode.Z
+        proximityPrompt.Style = Enum.ProximityPromptStyle.Custom
+        proximityPrompt.Parent = part
+
         proximityPrompt.Triggered:Connect(function(playerWhoPickedUp)
             part:Destroy()
             playerWhoPickedUp.PlayerData.Money.Value += money

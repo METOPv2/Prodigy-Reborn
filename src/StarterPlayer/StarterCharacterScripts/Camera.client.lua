@@ -12,8 +12,8 @@ local tweenInfo = TweenInfo.new(Settings.AnimationSpeed, Settings.AnimationStyle
 
 -- Character
 local Player = Players.LocalPlayer
-local Character = Player.Character
-local PrimaryPart = Character.PrimaryPart
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local PrimaryPart = Character:WaitForChild("HumanoidRootPart")
 
 -- Camera
 local Camera = workspace.CurrentCamera

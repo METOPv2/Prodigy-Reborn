@@ -13,6 +13,9 @@ local raycastParams = RaycastParams.new()
 raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 raycastParams.FilterDescendantsInstances = { Character }
 
+-- Binding
+local changePlatformState = Instance.new("BindableEvent")
+
 -- Switches
 local downPressed = false
 
@@ -41,39 +44,32 @@ end
 UserInputService.InputBegan:Connect(InputBegan)
 UserInputService.InputEnded:Connect(InputEnded)
 
--- Function to enable platform collisions
-local function EnablePlatformCollisions()
-    local platformsFolder = workspace:WaitForChild("CurrentMap"):WaitForChild("Platforms")
-    for _, platform in ipairs(platformsFolder:GetChildren()) do
-        if platform:IsA("BasePart") then
-            platform.CanCollide = true
+-- Change a platform's state
+changePlatformState.Event:Connect(function(state)
+    for _, platform in ipairs(workspace:GetDescendants()) do
+        if platform:GetAttribute("IsPlatform") == true and platform:IsA("Model") then
+            for _, part in ipairs(platform:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = state
+                end
+            end
         end
     end
-end
-
--- Function to disable platform collisions
-local function DisablePlatformCollisions()
-    local platformsFolder = workspace:WaitForChild("CurrentMap"):WaitForChild("Platforms")
-    for _, platform in ipairs(platformsFolder:GetChildren()) do
-        if platform:IsA("BasePart") then
-            platform.CanCollide = false
-        end
-    end
-end
+end)
 
 -- Monitor Humanoid state changes
 Humanoid.StateChanged:Connect(function(_, newState)
     if newState ~= Enum.HumanoidStateType.Freefall then
-        return EnablePlatformCollisions()
+        return changePlatformState:Fire(true)
     end
 
     -- Start monitoring vertical velocity
     while Humanoid:GetState() == Enum.HumanoidStateType.Freefall do
         local velocity = PrimaryPart.Velocity
         if velocity.Y > 0 then
-            DisablePlatformCollisions()
+            changePlatformState:Fire(false)
         elseif not downPressed then
-            EnablePlatformCollisions()
+            changePlatformState:Fire(true)
         end
         task.wait()
     end

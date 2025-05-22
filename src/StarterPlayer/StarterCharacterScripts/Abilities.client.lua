@@ -51,12 +51,11 @@ local function InputBegan(input: InputObject, isProcessed)
     elseif input.KeyCode == Enum.KeyCode.Up then
         AbilitiesManager.SpecialJump()
     elseif input.KeyCode == Enum.KeyCode.LeftAlt and lastDirection then
-        -- TODO: Update animations AS WELL AS LAYING ANIMATION
-        -- if math.random() < 0.5 then
-        -- 	Dash1AnimationTrack:Play()
-        -- else
-        -- 	Dash2AnimationTrack:Play()
-        -- end
+        if math.random() < 0.5 then
+            Dash1AnimationTrack:Play()
+        else
+            Dash2AnimationTrack:Play()
+        end
         AbilitiesManager.Dash(lastDirection)
     elseif input.KeyCode == Enum.KeyCode.Down and Humanoid:GetState() == Enum.HumanoidStateType.Running then
         Humanoid.WalkSpeed = 0
