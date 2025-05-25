@@ -1,15 +1,19 @@
-local ItemsData = require(game.ReplicatedStorage.Source.Inventory.Data.Items)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GuiService = game:GetService("GuiService")
+local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local dropItemRemoveEvent = game.ReplicatedStorage.RemoteEvents.DropItem
-local DropItemUI = game.Players.LocalPlayer.PlayerGui:WaitForChild("DropItem")
-local InventoryUI = game.Players.LocalPlayer.PlayerGui:WaitForChild("Inventory")
+
+local ItemsData = require(ReplicatedStorage.Source.Inventory.Data.Items)
+
+local dropItemRemoveEvent = ReplicatedStorage.RemoteEvents.DropItem
+local DropItemUI = Players.LocalPlayer.PlayerGui:WaitForChild("DropItem")
+local InventoryUI = Players.LocalPlayer.PlayerGui:WaitForChild("Inventory")
 local Holder = InventoryUI.Container.Container.Items.Container
 
 local hoverZone = Instance.new("Frame")
 hoverZone.BackgroundTransparency = 1
 hoverZone.Size = UDim2.fromOffset(660, 510)
-hoverZone.Position = UDim2.new(0.5, 0, 0.5)
+hoverZone.Position = UDim2.fromScale(0.5, 0.5)
 hoverZone.AnchorPoint = Vector2.new(0.5, 0.5)
 hoverZone.Parent = InventoryUI
 
@@ -30,7 +34,7 @@ local dragScreenUI = Instance.new("ScreenGui")
 dragScreenUI.Name = "DragScreenUI"
 dragScreenUI.ResetOnSpawn = false
 dragScreenUI.DisplayOrder = 10
-dragScreenUI.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+dragScreenUI.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local function CreateSlot(name: string)
     local itemData = ItemsData[name]

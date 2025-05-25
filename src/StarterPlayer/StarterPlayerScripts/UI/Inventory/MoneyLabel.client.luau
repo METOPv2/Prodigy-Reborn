@@ -1,12 +1,16 @@
-local player = game.Players.LocalPlayer
-local money = player:WaitForChild("PlayerData").Money
-local label = player.PlayerGui:WaitForChild("Inventory").Container.Container.Coins.TextLabel
-local numberAbbreviation = require(game.ReplicatedStorage:WaitForChild("Source").ModuleScripts.NumberAbbreviation)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local function updateLabel(amount)
-    label.Text = numberAbbreviation:Comas(amount)
+local NumberAbbreviation = require(ReplicatedStorage:WaitForChild("Source").ModuleScripts.NumberAbbreviation)
+
+local player = Players.LocalPlayer
+local money = player:WaitForChild("PlayerData").Money :: NumberValue
+local label = player.PlayerGui:WaitForChild("Inventory").Container.Container.Coins.TextLabel :: TextLabel
+
+local function updateLabel()
+    label.Text = NumberAbbreviation:Comas(money.Value)
 end
 
 money.Changed:Connect(updateLabel)
 
-updateLabel(money.Value)
+updateLabel()
