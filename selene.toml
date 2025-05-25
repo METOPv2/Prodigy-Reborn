@@ -1,3 +1,1 @@
-[configuration]
-include = ["src"]
-allow_globals = true
+std = "roblox"

@@ -1,3 +1,5 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 return {
     NebulaOrb = {
         DisplayName = "Nebula Orb",
@@ -75,7 +77,7 @@ return {
         DisplayName = "Trae Scottie Mocha Low 1s",
         Image = "rbxassetid://131663049024652",
         Unstackable = true,
-        Model = game.ReplicatedStorage:WaitForChild("Assets").Models.Shoes.TraeScottieMochaLow1s,
+        Model = ReplicatedStorage:WaitForChild("Assets").Models.Shoes.TraeScottieMochaLow1s,
         Rarity = "Common",
     },
 }

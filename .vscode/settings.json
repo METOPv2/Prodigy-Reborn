@@ -1,15 +1,14 @@
 {
     "[lua]": {
         "editor.defaultFormatter": "JohnnyMorganz.stylua",
-        "editor.formatOnPaste": true,
         "editor.formatOnSave": true,
     },
-    "[json]": {
-        "editor.quickSuggestions": {
-            "strings": true
-        },
-        "editor.suggest.insertMode": "replace",
-        "editor.defaultFormatter": "vscode.json-language-features",
-        "editor.formatOnSave": true,
+    "[luau]": {
+        "editor.defaultFormatter": "JohnnyMorganz.stylua",
+        "editor.formatOnSave": true
+    },
+    "workbench.editor.customLabels.patterns": {
+        "**/init.lua": "${dirname} (${filename}.${extname})",
+        "**/init.luau": "${dirname} (${filename}.${extname})"
     }
 }   
