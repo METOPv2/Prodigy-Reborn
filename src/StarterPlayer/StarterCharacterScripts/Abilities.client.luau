@@ -16,7 +16,7 @@ humanoid.StateChanged:Connect(function(_: Enum.HumanoidStateType, new: Enum.Huma
 end)
 
 local dashAction = Keybind.GetAction("Dash", Enum.KeyCode.LeftAlt)
-local specialJumpAction = Keybind.GetAction("SpecialJump", Enum.KeyCode.Up)
+local specialJumpAction = Keybind.GetAction("SpecialJump", Enum.KeyCode.LeftAlt)
 local layAction = Keybind.GetAction("Lay", Enum.KeyCode.Down)
 
 dashAction.Pressed:Connect(AbilitiesManager.Dash)

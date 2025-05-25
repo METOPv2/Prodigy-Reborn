@@ -3,6 +3,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
 
 local CharacterMovementSettings = require(ReplicatedStorage:WaitForChild("Source").Settings.CharacterMovement :: ModuleScript)
+local Keybind = require(ReplicatedStorage:WaitForChild("Source").Packages.Keybind)
+
+local specialJumpUpArrowAction = Keybind.GetAction("SpecialJumpUpArrow", Enum.KeyCode.Up)
 
 local player = Players.LocalPlayer
 
@@ -31,7 +34,7 @@ function AbilitiesManager.SpecialJump()
     local humanoid = character:FindFirstChild("Humanoid") :: Humanoid
     local primaryPart = character.PrimaryPart :: BasePart
 
-    if AbilitiesManager.specialJumpActivated or humanoid:GetState() ~= Enum.HumanoidStateType.Freefall then
+    if AbilitiesManager.specialJumpActivated or humanoid:GetState() ~= Enum.HumanoidStateType.Freefall or not specialJumpUpArrowAction:GetState() then
         return
     end
 
@@ -69,13 +72,9 @@ function AbilitiesManager.Dash()
         dash2Track:Play()
     end
 
-    primaryPart:ApplyImpulse(moveDirection * Vector3.new(CharacterMovementSettings.DashSpeed, 0, 0))
+    primaryPart:ApplyImpulse(moveDirection * Vector3.new(CharacterMovementSettings.DashSpeed, 100, 0))
 
     AbilitiesManager.dashesActivated += 1
-
-    if AbilitiesManager.dashesActivated > 1 or AbilitiesManager.specialJumpActivated then
-        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-    end
 end
 
 function AbilitiesManager.Lay()
