@@ -15,6 +15,8 @@ local dash1Animation = animations:FindFirstChild("Dash1") :: Animation
 local dash2Animation = animations:FindFirstChild("Dash2") :: Animation
 local layAnimation = animations:FindFirstChild("Lay") :: Animation
 
+local specialJumpParticlesTemplate = assets.Particles.SpecialJump.ParticleEmitter :: ParticleEmitter
+
 export type Constructor = {
     specialJumpActivated: boolean,
     dashesActivated: number,
@@ -34,9 +36,27 @@ function AbilitiesManager.SpecialJump()
     local humanoid = character:FindFirstChild("Humanoid") :: Humanoid
     local primaryPart = character.PrimaryPart :: BasePart
 
-    if AbilitiesManager.specialJumpActivated or humanoid:GetState() ~= Enum.HumanoidStateType.Freefall or not specialJumpUpArrowAction:GetState() then
+    if
+        AbilitiesManager.specialJumpActivated
+        or humanoid:GetState() ~= Enum.HumanoidStateType.Freefall
+        or not specialJumpUpArrowAction:GetState()
+        or AbilitiesManager.dashesActivated > 0
+    then
         return
     end
+
+    local gravity = workspace.Gravity
+    local initialVelocity = CharacterMovementSettings.SpecialJumpStrength * primaryPart.Mass
+    local timeToApex = initialVelocity / gravity
+
+    local particles = specialJumpParticlesTemplate:Clone()
+    particles.Parent = primaryPart
+
+    task.delay(timeToApex, function()
+        particles.Enabled = false
+        task.wait(particles.Lifetime.Max)
+        particles:Destroy()
+    end)
 
     primaryPart.Velocity = Vector3.new(0, CharacterMovementSettings.SpecialJumpStrength * primaryPart.Mass, 0)
     AbilitiesManager.specialJumpActivated = true
