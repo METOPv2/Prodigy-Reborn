@@ -1,32 +1,63 @@
--- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 -- Module scripts
-local Settings = require(ReplicatedStorage.Source.Settings.Camera)
+local Settings = require(ReplicatedStorage:WaitForChild("Source").Settings.Camera)
 
 -- Tween service
 local tweenInfo = TweenInfo.new(Settings.AnimationSpeed, Settings.AnimationStyle, Settings.AnimationDirection)
 
--- Character
-local Player = Players.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local PrimaryPart = Character:WaitForChild("HumanoidRootPart")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local primaryPart = character:WaitForChild("HumanoidRootPart") :: BasePart
 
 -- Camera
 local Camera = workspace.CurrentCamera
 Camera.FieldOfView = Settings.CameraFOV
 Camera.CameraType = Enum.CameraType.Scriptable
-Camera.CFrame = CFrame.lookAt(PrimaryPart.CFrame.Position + Settings.CameraOffset, PrimaryPart.CFrame.Position)
 
--- Functions
+-- Camera state
+local cameraPosition = primaryPart.CFrame.Position + Settings.CameraOffset
+
 local function MoveCamera()
-    TweenService:Create(Camera, tweenInfo, {
-        CFrame = CFrame.lookAt(PrimaryPart.CFrame.Position + Settings.CameraOffset, PrimaryPart.CFrame.Position),
-    }):Play()
+    local primaryPartPosition = primaryPart.CFrame.Position
+    local camOffset = Settings.CameraOffset
+
+    -- Calculate the difference between player and camera (on X and Y)
+    local delta = primaryPartPosition + camOffset - cameraPosition
+
+    local deltaX, deltaY = delta.X, delta.Y
+
+    local halfDeadzoneWidth = Settings.CameraDeadzoneSize.X / 2
+    local halfDeadzoneHeight = Settings.CameraDeadzoneSize.Y / 2
+
+    -- Only move camera if player is outside the deadzone
+    if math.abs(deltaX) > halfDeadzoneWidth then
+        if deltaX > 0 then
+            cameraPosition = Vector3.new(primaryPartPosition.X + camOffset.X - halfDeadzoneWidth, cameraPosition.Y, cameraPosition.Z)
+        else
+            cameraPosition = Vector3.new(primaryPartPosition.X + camOffset.X + halfDeadzoneWidth, cameraPosition.Y, cameraPosition.Z)
+        end
+    end
+    if math.abs(deltaY) > halfDeadzoneHeight then
+        if deltaY > 0 then
+            cameraPosition = Vector3.new(cameraPosition.X, primaryPartPosition.Y + camOffset.Y - halfDeadzoneHeight, cameraPosition.Z)
+        else
+            cameraPosition = Vector3.new(cameraPosition.X, primaryPartPosition.Y + camOffset.Y + halfDeadzoneHeight, cameraPosition.Z)
+        end
+    end
+
+    -- Always keep Z offset
+    cameraPosition = Vector3.new(cameraPosition.X, cameraPosition.Y, primaryPartPosition.Z + camOffset.Z)
+
+    -- Tween camera to new position
+    TweenService
+        :Create(Camera, tweenInfo, {
+            CFrame = CFrame.lookAt(cameraPosition, Vector3.new(cameraPosition.X + camOffset.X, cameraPosition.Y, cameraPosition.X + camOffset.Z)),
+        })
+        :Play()
 end
 
--- Events
 RunService:BindToRenderStep("Camera", Enum.RenderPriority.Camera.Value, MoveCamera)
