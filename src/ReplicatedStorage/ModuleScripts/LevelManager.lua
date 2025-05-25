@@ -1,3 +1,7 @@
+export type Constructor = {
+    CalculateExpGoal: (level: number) -> number,
+}
+
 local LevelManager = {}
 
 function LevelManager:CalculateExpGoal(level: number)
