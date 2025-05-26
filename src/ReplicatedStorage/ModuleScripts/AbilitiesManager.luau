@@ -47,7 +47,14 @@ function AbilitiesManager.SpecialJump()
         end
     end
 
-    primaryPart:ApplyImpulse(Vector3.new(0, CharacterMovementSettings.SpecialJumpStrength * primaryPart.Mass, 0))
+    local characterMass = 0
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            characterMass += part.Mass
+        end
+    end
+
+    primaryPart:ApplyImpulse(Vector3.new(0, CharacterMovementSettings.SpecialJumpStrength * characterMass, 0))
 
     AbilitiesManager.specialJumpActivated = true
 end
@@ -70,11 +77,9 @@ function AbilitiesManager.Dash()
     local animator = humanoid:WaitForChild("Animator") :: Animator
 
     local dash1Track = animator:LoadAnimation(dash1Animation)
-    dash1Track.Priority = Enum.AnimationPriority.Action4
     dash1Track.Looped = false
 
     local dash2Track = animator:LoadAnimation(dash2Animation)
-    dash2Track.Priority = Enum.AnimationPriority.Action4
     dash2Track.Looped = false
 
     if math.random() < 0.5 then
@@ -83,7 +88,55 @@ function AbilitiesManager.Dash()
         dash2Track:Play()
     end
 
-    primaryPart:ApplyImpulse(dashDirection * Vector3.new(CharacterMovementSettings.DashSpeed, 100, 0))
+    local characterMass = 0
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            characterMass += part.Mass
+        end
+    end
+
+    primaryPart:ApplyImpulse(dashDirection * Vector3.new(CharacterMovementSettings.DashSpeed * characterMass, 100, 0))
+
+    local rootAttachment = primaryPart:FindFirstChild("RootAttachment") :: Attachment
+
+    local vectorForce = Instance.new("VectorForce")
+    vectorForce.ApplyAtCenterOfMass = true
+    vectorForce.Force = Vector3.new(0, 80 * characterMass, 0)
+    vectorForce.Attachment0 = rootAttachment
+
+    local connection: RBXScriptConnection
+
+    connection = humanoid.StateChanged:Connect(function(_: Enum.HumanoidStateType, new: Enum.HumanoidStateType)
+        if new == Enum.HumanoidStateType.Landed then
+            vectorForce:Destroy()
+            connection:Disconnect()
+        end
+    end)
+
+    task.delay(0.1, function()
+        vectorForce.Parent = primaryPart
+
+        coroutine.wrap(function()
+            while connection do
+                if vectorForce.Parent then
+                    local decreasePerSecond = 80 * characterMass * 10
+                    local decreasePerMillisecond = decreasePerSecond / 1000
+                    local currentForce = vectorForce.Force
+                    local newY = math.max(0, currentForce.Y - decreasePerMillisecond)
+                    vectorForce.Force = Vector3.new(currentForce.X, newY, currentForce.Z)
+                    if newY == 0 then
+                        vectorForce:Destroy()
+                        connection:Disconnect()
+                        break
+                    end
+                else
+                    break
+                end
+
+                task.wait()
+            end
+        end)()
+    end)
 
     AbilitiesManager.dashesActivated += 1
 end

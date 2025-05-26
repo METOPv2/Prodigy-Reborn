@@ -28,6 +28,7 @@ local function inputBegan(input: InputObject, gameProcessed: boolean)
         end
     elseif input.KeyCode == Enum.KeyCode.Up then
         specialJumpInitialized = true
+        AbilitiesManager.SpecialJump()
     end
 end
 

@@ -1,5 +1,5 @@
 return {
-    DashSpeed = 250,
-    SpecialJumpStrength = 100,
+    DashSpeed = 70,
+    SpecialJumpStrength = 50,
     MaxDashes = 1,
 }
