@@ -1,11 +1,8 @@
+--!strict
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local StarterPlayer = game:GetService("StarterPlayer")
 
-local CharacterMovementSettings = require(ReplicatedStorage:WaitForChild("Source").Settings.CharacterMovement :: ModuleScript)
-local Keybind = require(ReplicatedStorage:WaitForChild("Source").Packages.Keybind)
-
-local specialJumpUpArrowAction = Keybind.GetAction("SpecialJumpUpArrow", Enum.KeyCode.Up)
+local CharacterMovementSettings = require(ReplicatedStorage:WaitForChild("Source").Settings.CharacterMovement)
 
 local player = Players.LocalPlayer
 
@@ -13,9 +10,9 @@ local assets = ReplicatedStorage:WaitForChild("Assets") :: Folder
 local animations = assets:FindFirstChild("Animations") :: Folder
 local dash1Animation = animations:FindFirstChild("Dash1") :: Animation
 local dash2Animation = animations:FindFirstChild("Dash2") :: Animation
-local layAnimation = animations:FindFirstChild("Lay") :: Animation
 
-local specialJumpParticlesTemplate = assets.Particles.SpecialJump.ParticleEmitter :: ParticleEmitter
+local particleAssets = assets:FindFirstChild("Particles") :: Folder
+local specialJumpParticlesTemplate = particleAssets:FindFirstChild("SpecialJump") :: BasePart
 
 export type Constructor = {
     specialJumpActivated: boolean,
@@ -36,29 +33,22 @@ function AbilitiesManager.SpecialJump()
     local humanoid = character:FindFirstChild("Humanoid") :: Humanoid
     local primaryPart = character.PrimaryPart :: BasePart
 
-    if
-        AbilitiesManager.specialJumpActivated
-        or humanoid:GetState() ~= Enum.HumanoidStateType.Freefall
-        or not specialJumpUpArrowAction:GetState()
-        or AbilitiesManager.dashesActivated > 0
-    then
+    if AbilitiesManager.specialJumpActivated or humanoid:GetState() ~= Enum.HumanoidStateType.Freefall or AbilitiesManager.dashesActivated > 0 then
         return
     end
 
-    local gravity = workspace.Gravity
-    local initialVelocity = CharacterMovementSettings.SpecialJumpStrength * primaryPart.Mass
-    local timeToApex = initialVelocity / gravity
-
     local particles = specialJumpParticlesTemplate:Clone()
-    particles.Parent = primaryPart
+    local particlesAttachment = particles:FindFirstChild("Attachment") :: Attachment
+    particlesAttachment.Parent = primaryPart
 
-    task.delay(timeToApex, function()
-        particles.Enabled = false
-        task.wait(particles.Lifetime.Max)
-        particles:Destroy()
-    end)
+    for _, particleEmitter in ipairs(particlesAttachment:GetChildren()) do
+        if particleEmitter:IsA("ParticleEmitter") then
+            particleEmitter:Emit(1)
+        end
+    end
 
-    primaryPart.Velocity = Vector3.new(0, CharacterMovementSettings.SpecialJumpStrength * primaryPart.Mass, 0)
+    primaryPart:ApplyImpulse(Vector3.new(0, CharacterMovementSettings.SpecialJumpStrength * primaryPart.Mass, 0))
+
     AbilitiesManager.specialJumpActivated = true
 end
 
@@ -66,12 +56,13 @@ function AbilitiesManager.Dash()
     local character = player.Character or player.CharacterAdded:Wait()
     local primaryPart = character.PrimaryPart :: BasePart
     local humanoid = character:FindFirstChild("Humanoid") :: Humanoid
-    local moveDirection = humanoid.MoveDirection
+
+    local lookDirection = primaryPart.CFrame.LookVector
+    local dashDirection = Vector3.new(lookDirection.X < 0 and -1 or 1, 0, 0)
 
     if
         (humanoid:GetState() ~= Enum.HumanoidStateType.Freefall and humanoid:GetState() ~= Enum.HumanoidStateType.Jumping)
         or AbilitiesManager.dashesActivated >= CharacterMovementSettings.MaxDashes
-        or (moveDirection ~= Vector3.new(-1, 0, 0) and moveDirection ~= Vector3.new(1, 0, 0))
     then
         return
     end
@@ -92,27 +83,9 @@ function AbilitiesManager.Dash()
         dash2Track:Play()
     end
 
-    primaryPart:ApplyImpulse(moveDirection * Vector3.new(CharacterMovementSettings.DashSpeed, 100, 0))
+    primaryPart:ApplyImpulse(dashDirection * Vector3.new(CharacterMovementSettings.DashSpeed, 100, 0))
 
     AbilitiesManager.dashesActivated += 1
-end
-
-function AbilitiesManager.Lay()
-    local character = player.Character or player.CharacterAdded:Wait()
-    local humanoid = character:FindFirstChild("Humanoid") :: Humanoid
-    local animator = humanoid:WaitForChild("Animator") :: Animator
-
-    local layTrack = animator:LoadAnimation(layAnimation)
-    layTrack.Priority = Enum.AnimationPriority.Idle
-    layTrack.Looped = false
-
-    humanoid.WalkSpeed = 0
-    layTrack:Play()
-
-    return function()
-        humanoid.WalkSpeed = StarterPlayer.CharacterWalkSpeed
-        layTrack:Stop()
-    end
 end
 
 function AbilitiesManager.Landed()

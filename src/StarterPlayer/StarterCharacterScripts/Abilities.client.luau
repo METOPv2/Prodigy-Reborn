@@ -1,13 +1,13 @@
 --!strict
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
 local AbilitiesManager = require(ReplicatedStorage:WaitForChild("Source").ModuleScripts.AbilitiesManager)
-local Keybind = require(ReplicatedStorage:WaitForChild("Source").Packages.Keybind)
 
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
+local character = script:FindFirstAncestorOfClass("Model") :: Model
 local humanoid = character:FindFirstChild("Humanoid") :: Humanoid
+
+local specialJumpInitialized = false
 
 humanoid.StateChanged:Connect(function(_: Enum.HumanoidStateType, new: Enum.HumanoidStateType)
     if new == Enum.HumanoidStateType.Landed then
@@ -15,14 +15,31 @@ humanoid.StateChanged:Connect(function(_: Enum.HumanoidStateType, new: Enum.Huma
     end
 end)
 
-local dashAction = Keybind.GetAction("Dash", Enum.KeyCode.LeftAlt)
-local specialJumpAction = Keybind.GetAction("SpecialJump", Enum.KeyCode.LeftAlt)
-local layAction = Keybind.GetAction("Lay", Enum.KeyCode.Down)
+local function inputBegan(input: InputObject, gameProcessed: boolean)
+    if gameProcessed then
+        return
+    end
 
-dashAction.Pressed:Connect(AbilitiesManager.Dash)
-specialJumpAction.Pressed:Connect(AbilitiesManager.SpecialJump)
-layAction.Pressed:Connect(function()
-    local stand = AbilitiesManager.Lay()
-    layAction.Released:Wait()
-    stand()
-end)
+    if input.KeyCode == Enum.KeyCode.LeftAlt then
+        if specialJumpInitialized then
+            AbilitiesManager.SpecialJump()
+        else
+            AbilitiesManager.Dash()
+        end
+    elseif input.KeyCode == Enum.KeyCode.Up then
+        specialJumpInitialized = true
+    end
+end
+
+local function inputEnded(input: InputObject, gameProcessed: boolean)
+    if gameProcessed then
+        return
+    end
+
+    if input.KeyCode == Enum.KeyCode.Up then
+        specialJumpInitialized = false
+    end
+end
+
+UserInputService.InputBegan:Connect(inputBegan)
+UserInputService.InputEnded:Connect(inputEnded)
