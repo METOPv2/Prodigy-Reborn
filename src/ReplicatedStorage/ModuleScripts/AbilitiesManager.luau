@@ -13,6 +13,7 @@ local dash2Animation = animations:FindFirstChild("Dash2") :: Animation
 
 local particleAssets = assets:FindFirstChild("Particles") :: Folder
 local specialJumpParticlesTemplate = particleAssets:FindFirstChild("SpecialJump") :: BasePart
+local dashParticlesTemplate = particleAssets:FindFirstChild("Dash") :: BasePart
 
 export type Constructor = {
     specialJumpActivated: boolean,
@@ -41,11 +42,20 @@ function AbilitiesManager.SpecialJump()
     local particlesAttachment = particles:FindFirstChild("Attachment") :: Attachment
     particlesAttachment.Parent = primaryPart
 
+    local maxLifetime = 0
     for _, particleEmitter in ipairs(particlesAttachment:GetChildren()) do
         if particleEmitter:IsA("ParticleEmitter") then
             particleEmitter:Emit(1)
+
+            if particleEmitter.Lifetime.Max > maxLifetime then
+                maxLifetime = particleEmitter.Lifetime.Max
+            end
         end
     end
+
+    task.delay(maxLifetime, function()
+        particles:Destroy()
+    end)
 
     local characterMass = 0
     for _, part in ipairs(character:GetDescendants()) do
@@ -95,6 +105,26 @@ function AbilitiesManager.Dash()
         end
     end
 
+    local particles = dashParticlesTemplate:Clone()
+    local particlesAttachment = particles:FindFirstChild("Attachment") :: Attachment
+    particlesAttachment.Parent = primaryPart
+
+    local maxLifetime = 0
+    for _, particleEmitter in ipairs(particlesAttachment:GetChildren()) do
+        if particleEmitter:IsA("ParticleEmitter") then
+            particleEmitter.Rotation = NumberRange.new(lookDirection.X * -90)
+            particleEmitter:Emit(10)
+
+            if particleEmitter.Lifetime.Max > maxLifetime then
+                maxLifetime = particleEmitter.Lifetime.Max
+            end
+        end
+    end
+
+    task.delay(maxLifetime, function()
+        particles:Destroy()
+    end)
+
     primaryPart:ApplyImpulse(dashDirection * Vector3.new(CharacterMovementSettings.DashSpeed * characterMass, 100, 0))
 
     local rootAttachment = primaryPart:FindFirstChild("RootAttachment") :: Attachment
@@ -114,6 +144,10 @@ function AbilitiesManager.Dash()
     end)
 
     task.delay(0.1, function()
+        if not vectorForce then
+            return
+        end
+
         vectorForce.Parent = primaryPart
 
         coroutine.wrap(function()

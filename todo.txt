@@ -1,4 +1,12 @@
 recreate stamina system (server side connected replicatedstorage/modulescripts/staminamanager)
+bring back stamina for the dash and the special jump
 
 special jump particles
 fix walking issue
+bind I for inventory
+bind W for world map
+bind S for the book
+map moveable
+the book UI and stats
+10 skill points for each level up
+make all UI moveable

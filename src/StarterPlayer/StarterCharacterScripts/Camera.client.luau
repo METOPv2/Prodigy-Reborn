@@ -25,7 +25,6 @@ local function MoveCamera()
     local primaryPartPosition = primaryPart.CFrame.Position
     local camOffset = Settings.CameraOffset
 
-    -- Calculate the difference between player and camera (on X and Y)
     local delta = primaryPartPosition + camOffset - cameraPosition
 
     local deltaX, deltaY = delta.X, delta.Y
@@ -33,7 +32,6 @@ local function MoveCamera()
     local halfDeadzoneWidth = Settings.CameraDeadzoneSize.X / 2
     local halfDeadzoneHeight = Settings.CameraDeadzoneSize.Y / 2
 
-    -- Only move camera if player is outside the deadzone
     if math.abs(deltaX) > halfDeadzoneWidth then
         if deltaX > 0 then
             cameraPosition = Vector3.new(primaryPartPosition.X + camOffset.X - halfDeadzoneWidth, cameraPosition.Y, cameraPosition.Z)
@@ -49,10 +47,8 @@ local function MoveCamera()
         end
     end
 
-    -- Always keep Z offset
     cameraPosition = Vector3.new(cameraPosition.X, cameraPosition.Y, primaryPartPosition.Z + camOffset.Z)
 
-    -- Tween camera to new position
     TweenService
         :Create(Camera, tweenInfo, {
             CFrame = CFrame.lookAt(cameraPosition, Vector3.new(cameraPosition.X + camOffset.X, cameraPosition.Y, cameraPosition.X + camOffset.Z)),
