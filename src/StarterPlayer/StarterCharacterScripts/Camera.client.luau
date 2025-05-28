@@ -11,11 +11,15 @@ local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local primaryPart = character:WaitForChild("HumanoidRootPart") :: BasePart
 
+local cameraPosition = primaryPart.CFrame.Position + Settings.CameraOffset
+
 local camera = workspace.CurrentCamera
+camera.CFrame = CFrame.new(
+    cameraPosition,
+    Vector3.new(cameraPosition.X + Settings.CameraOffset.X, cameraPosition.Y, cameraPosition.X + Settings.CameraOffset.Z)
+) * CFrame.Angles(0, math.rad(180), 0)
 camera.FieldOfView = Settings.CameraFOV
 camera.CameraType = Enum.CameraType.Scriptable
-
-local cameraPosition = primaryPart.CFrame.Position + Settings.CameraOffset
 
 local function MoveCamera()
     local primaryPartPosition = primaryPart.CFrame.Position
