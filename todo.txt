@@ -10,3 +10,5 @@ map moveable
 the book UI and stats
 10 skill points for each level up
 make all UI moveable
+
+hover animation for tab icons
