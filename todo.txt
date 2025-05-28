@@ -12,3 +12,17 @@ the book UI and stats
 make all UI moveable
 
 hover animation for tab icons
+Stats tab:
+Level up/down each of the stats:
+hp - health
+mp - mana
+str - strength (warrior)
+dex - archer
+luk - ninja
+int - magician
+
+General info about the stats
+
+Get 10 stat points per each level
+
+Total stat points (counter)
