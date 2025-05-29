@@ -14,7 +14,7 @@ return {
         Money = 0,
         EXP = 0,
         Level = 0,
-        SkillPoints = 0,
+        SkillPoints = 50,
     },
     Stats = {
         HP = 0,
