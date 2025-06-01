@@ -17,11 +17,11 @@ return {
         SkillPoints = 50,
     },
     Stats = {
-        HP = 0,
-        MP = 0,
-        STR = 0,
-        DEX = 0,
-        LUK = 0,
-        INT = 0,
+        HP = 30,
+        MP = 30,
+        STR = 30,
+        DEX = 30,
+        LUK = 30,
+        INT = 30,
     },
 }
