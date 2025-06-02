@@ -1,16 +1,24 @@
-local InterfaceUI = game.Players.LocalPlayer.PlayerGui:WaitForChild("Interface")
-local FrontCircle = InterfaceUI:FindFirstChild("FrontCircle", true)
-local PercentageLabel = FrontCircle.Percentage
+--!strict
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Level = game.Players.LocalPlayer:WaitForChild("PlayerData").Level
-local EXP = game.Players.LocalPlayer:WaitForChild("PlayerData").EXP
+local LevelManager = require(ReplicatedStorage.Source.ModuleScripts.LevelManager)
 
-local LevelManager = require(game.ReplicatedStorage.Source.ModuleScripts.LevelManager)
+local player = Players.LocalPlayer
+local playerGui = player.PlayerGui
+local interfaceGui = playerGui:WaitForChild("Interface") :: ScreenGui
+local interfaceBackground = interfaceGui:FindFirstChild("Background") :: ImageLabel
+local frontCircle = interfaceBackground:FindFirstChild("FrontCircle") :: ImageLabel
+local percentageLabel = frontCircle:FindFirstChild("Percentage") :: TextLabel
 
-local function UpdateUI()
-    PercentageLabel.Text = string.format("%.1f%%", (EXP.Value / LevelManager:CalculateExpGoal(Level.Value)) * 100)
+local playerData = player:WaitForChild("PlayerData") :: Folder
+local level = playerData:FindFirstChild("Level") :: IntValue
+local exp = playerData:FindFirstChild("EXP") :: IntValue
+
+local function updateTextLabel()
+    percentageLabel.Text = string.format("%.1f%%", (exp.Value / LevelManager:CalculateExpGoal(level.Value)) * 100)
 end
 
-UpdateUI()
-EXP.Changed:Connect(UpdateUI)
-Level.Changed:Connect(UpdateUI)
+updateTextLabel()
+exp.Changed:Connect(updateTextLabel)
+level.Changed:Connect(updateTextLabel)

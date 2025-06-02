@@ -1,25 +1,32 @@
-local levelManager = require(game.ReplicatedStorage.Source.ModuleScripts.LevelManager)
+--!strict
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local LevelManager = require(ReplicatedStorage.Source.ModuleScripts.LevelManager)
 local connections = {}
 
-game.Players.PlayerAdded:Connect(function(player)
-    local level: IntValue = player:WaitForChild("PlayerData").Level
-    local exp: IntValue = player:WaitForChild("PlayerData").EXP
+Players.PlayerAdded:Connect(function(player)
+    local playerData = player:WaitForChild("PlayerData") :: Folder
+    local level = playerData:FindFirstChild("Level") :: IntValue
+    local exp = playerData:FindFirstChild("EXP") :: IntValue
+    local skillPoints = playerData:FindFirstChild("SkillPoints") :: IntValue
 
-    local connectionExp = exp.Changed:Connect(function(newValue)
-        if newValue >= levelManager:CalculateExpGoal(level.Value) then
+    local function expChanged(newExp)
+        local expGoal = LevelManager:CalculateExpGoal(level.Value)
+        if newExp >= expGoal then
             exp.Value = 0
             level.Value += 1
+            skillPoints.Value += 10
         end
-    end)
+    end
 
-    table.insert(connections, connectionExp)
+    connections[player] = exp.Changed:Connect(expChanged)
 end)
 
-game.Players.PlayerRemoving:Connect(function(player)
-    if connections[player] then
-        for _, connection: RBXScriptConnection in ipairs(connections[player]) do
-            connection:Disconnect()
-        end
+Players.PlayerRemoving:Connect(function(player)
+    local expConnection = connections[player]
+    if expConnection then
+        expConnection:Disconnect()
         connections[player] = nil
     end
 end)

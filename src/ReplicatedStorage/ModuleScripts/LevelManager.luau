@@ -1,3 +1,4 @@
+--!strict
 export type Constructor = {
     CalculateExpGoal: (level: number) -> number,
 }

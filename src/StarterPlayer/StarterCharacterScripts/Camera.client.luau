@@ -48,8 +48,7 @@ local function MoveCamera()
     cameraPosition = Vector3.new(cameraPosition.X, cameraPosition.Y, primaryPartPosition.Z + camOffset.Z)
 
     TweenService:Create(camera, tweenInfo, {
-        CFrame = CFrame.new(cameraPosition, Vector3.new(cameraPosition.X + camOffset.X, cameraPosition.Y, cameraPosition.X + camOffset.Z))
-            * CFrame.Angles(0, math.rad(180), 0),
+        CFrame = CFrame.new(cameraPosition, Vector3.new(cameraPosition.X + camOffset.X, cameraPosition.Y, cameraPosition.X + camOffset.Z)),
     }):Play()
 end
 
