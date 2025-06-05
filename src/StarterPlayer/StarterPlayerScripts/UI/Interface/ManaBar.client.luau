@@ -1,20 +1,29 @@
-local InterfaceUI = game.Players.LocalPlayer.PlayerGui:WaitForChild("Interface")
-local ManaBar = InterfaceUI:FindFirstChild("ManaBar", true)
-local ProgressFrame = ManaBar.Progress.Frame
-local ManaText = ManaBar.TextLabel
+--!strict
+local Players = game:GetService("Players")
 
-local CurrentStamina = game.ReplicatedStorage.Stamina.CurrentStamina
-local MaxStamina = game.ReplicatedStorage.Stamina.MaxStamina
+local player = Players.LocalPlayer
+local playerGui = player.PlayerGui
+local interfaceGui = playerGui:WaitForChild("Interface") :: ScreenGui
+local interfaceBackground = interfaceGui:FindFirstChild("Background") :: ImageLabel
+local manaBar = interfaceBackground:FindFirstChild("ManaBar") :: Frame
+local manaProgressBar = manaBar:FindFirstChild("Progress") :: ImageLabel
+local manaProgressFrame = manaProgressBar:FindFirstChild("Frame") :: Frame
+local manaTextLabel = manaBar:FindFirstChild("TextLabel") :: TextLabel
 
-local function UpdateUI()
-    ProgressFrame.Size = UDim2.fromScale(1 - CurrentStamina.Value / MaxStamina.Value, 1)
-    ManaText.Text = string.format(
+local playerData = player:WaitForChild("PlayerData") :: Folder
+local maxStamina = playerData:FindFirstChild("MaxStamina") :: IntValue
+local currentStamina = playerData:FindFirstChild("CurrentStamina") :: IntValue
+
+local function updateManaBar()
+    manaProgressFrame.Size = UDim2.fromScale(1 - currentStamina.Value / maxStamina.Value, 1)
+    manaTextLabel.Text = string.format(
         "<stroke color='#000000' joins='miter' thickness='2'><font color='#0e83de'>[</font>%d/%d<font color='#0e83de'>]</font></stroke>",
-        CurrentStamina.Value,
-        MaxStamina.Value
+        currentStamina.Value,
+        maxStamina.Value
     )
 end
 
-UpdateUI()
-CurrentStamina.Changed:Connect(UpdateUI)
-MaxStamina.Changed:Connect(UpdateUI)
+updateManaBar() -- Initial update
+
+currentStamina.Changed:Connect(updateManaBar)
+maxStamina.Changed:Connect(updateManaBar)

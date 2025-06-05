@@ -15,15 +15,6 @@ local particleAssets = assets:FindFirstChild("Particles") :: Folder
 local specialJumpParticlesTemplate = particleAssets:FindFirstChild("SpecialJump") :: BasePart
 local dashParticlesTemplate = particleAssets:FindFirstChild("Dash") :: BasePart
 
-export type Constructor = {
-    specialJumpActivated: boolean,
-    dashesActivated: number,
-    SpecialJump: () -> nil,
-    Dash: () -> nil,
-    Lay: () -> () -> nil,
-    Landed: () -> nil,
-}
-
 local AbilitiesManager = {
     specialJumpActivated = false,
     dashesActivated = 0,
@@ -80,6 +71,7 @@ function AbilitiesManager.Dash()
     if
         (humanoid:GetState() ~= Enum.HumanoidStateType.Freefall and humanoid:GetState() ~= Enum.HumanoidStateType.Jumping)
         or AbilitiesManager.dashesActivated >= CharacterMovementSettings.MaxDashes
+        or AbilitiesManager.specialJumpActivated
     then
         return
     end

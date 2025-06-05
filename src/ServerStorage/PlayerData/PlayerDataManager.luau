@@ -2,7 +2,7 @@
 local DataStoreService = game:GetService("DataStoreService")
 local ServerStorage = game:GetService("ServerStorage")
 
-local InventoryDataStore = DataStoreService:GetDataStore("Player", "Inventory")
+local InventoryDataStore = DataStoreService:GetDataStore("PlayerData")
 local ValuesDataStore = DataStoreService:GetDataStore("Player", "Values")
 local StatsStore = DataStoreService:GetDataStore("Player", "Stats")
 
@@ -12,7 +12,7 @@ local PlayerDataStoreSettings = require(ServerStorage.Source.Settings.PlayerData
 local PlayerDataManager = {}
 local Loaded = {}
 
-function PlayerDataManager.InitPlayer(player: Player)
+local function initPlayerData(player: Player)
     local playerData = Instance.new("Folder")
     playerData.Name = "PlayerData"
 
@@ -43,12 +43,30 @@ function PlayerDataManager.InitPlayer(player: Player)
         skillPoints.Value = savedValues.SkillPoints
         skillPoints.Parent = playerData
 
+        local maxStamina = Instance.new("IntValue")
+        maxStamina.Name = "MaxStamina"
+        maxStamina.Value = 100
+        maxStamina.Parent = playerData
+
+        local currentStamina = Instance.new("IntValue")
+        currentStamina.Name = "CurrentStamina"
+        -- currentStamina.Value = savedValues.Stamina or 0
+        currentStamina.Parent = playerData
+
+        if savedValues.Stamina then
+            currentStamina.Value = savedValues.Stamina
+        else
+            currentStamina.Value = maxStamina.Value
+        end
+
         playerData.Parent = player
     else
         player:Kick(PlayerDataStoreSettings.ErrorMessages.Values)
         return
     end
+end
 
+local function initInventory(player: Player)
     local inventorySuccess, savedInventory = pcall(function()
         return InventoryDataStore:GetAsync("Player_" .. tostring(player.UserId))
     end)
@@ -77,7 +95,9 @@ function PlayerDataManager.InitPlayer(player: Player)
         player:Kick(PlayerDataStoreSettings.ErrorMessages.Inventory)
         return
     end
+end
 
+local function initStats(player: Player)
     local statsSuccess, savedStats = pcall(function()
         return StatsStore:GetAsync("Player_" .. tostring(player.UserId))
     end)
@@ -100,15 +120,9 @@ function PlayerDataManager.InitPlayer(player: Player)
         player:Kick(PlayerDataStoreSettings.ErrorMessages.Stats)
         return
     end
-
-    Loaded[player] = true
 end
 
-function PlayerDataManager.DeinitPlayer(player: Player)
-    if not Loaded[player] then
-        return
-    end
-
+local function saveInventory(player: Player)
     local inventory = {}
     local playerInventory = player:FindFirstChild("Inventory") :: Folder
 
@@ -132,22 +146,26 @@ function PlayerDataManager.DeinitPlayer(player: Player)
             return InventoryDataStore:SetAsync("Player_" .. tostring(player.UserId), inventory)
         end)
     until success or attempt == 5
+end
 
+local function savePlayerData(player: Player)
     local playerData = player:FindFirstChild("PlayerData") :: Folder
     local playerMoney = playerData:FindFirstChild("Money") :: NumberValue
     local playerLevel = playerData:FindFirstChild("Level") :: IntValue
     local playerEXP = playerData:FindFirstChild("EXP") :: IntValue
     local playerSkillPoints = playerData:FindFirstChild("SkillPoints") :: IntValue
+    local currentStamina = playerData:FindFirstChild("CurrentStamina") :: IntValue
 
     local values = {
         Money = playerMoney.Value,
         Level = playerLevel.Value,
         EXP = playerEXP.Value,
         SkillPoints = playerSkillPoints.Value,
+        Stamina = currentStamina.Value,
     }
 
-    success = false
-    attempt = 0
+    local success = false
+    local attempt = 0
 
     repeat
         attempt += 1
@@ -155,7 +173,9 @@ function PlayerDataManager.DeinitPlayer(player: Player)
             return ValuesDataStore:SetAsync("Player_" .. tostring(player.UserId), values)
         end)
     until success or attempt == 5
+end
 
+local function saveStats(player: Player)
     local stats = player:FindFirstChild("Stats") :: Folder
     local statValues = {}
 
@@ -164,8 +184,8 @@ function PlayerDataManager.DeinitPlayer(player: Player)
         statValues[name] = playerStat.Value or value
     end
 
-    success = false
-    attempt = 0
+    local success = false
+    local attempt = 0
 
     repeat
         attempt += 1
@@ -173,6 +193,28 @@ function PlayerDataManager.DeinitPlayer(player: Player)
             return StatsStore:SetAsync("Player_" .. tostring(player.UserId), statValues)
         end)
     until success or attempt == 5
+end
+
+function PlayerDataManager.InitPlayer(player: Player)
+    if Loaded[player] then
+        return
+    end
+
+    initInventory(player)
+    initPlayerData(player)
+    initStats(player)
+
+    Loaded[player] = true
+end
+
+function PlayerDataManager.DeinitPlayer(player: Player)
+    if not Loaded[player] then
+        return
+    end
+
+    saveInventory(player)
+    savePlayerData(player)
+    saveStats(player)
 
     Loaded[player] = nil
 end

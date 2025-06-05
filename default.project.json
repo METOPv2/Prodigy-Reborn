@@ -10,6 +10,42 @@
     "ReplicatedStorage": {
       "Source": {
         "$path": "src/ReplicatedStorage"
+      },
+      "RemoteEvents": {
+        "$className": "Folder",
+        "ActivateDash": {
+          "$className": "RemoteEvent"
+        },
+        "Attack": {
+          "$className": "RemoteEvent"
+        },
+        "DropItem": {
+          "$className": "RemoteEvent"
+        },
+        "ActivateSpecialJump": {
+          "$className": "RemoteEvent"
+        },
+        "DropMoney": {
+          "$className": "RemoteEvent"
+        },
+        "GetAllItems_Test": {
+          "$className": "RemoteEvent"
+        },
+        "GetMoney_Test": {
+          "$className": "RemoteEvent"
+        },
+        "GetSkillPoints_Test": {
+          "$className": "RemoteEvent"
+        },
+        "IncreaseStats": {
+          "$className": "RemoteEvent"
+        },
+        "LevelUp_Test": {
+          "$className": "RemoteEvent"
+        },
+        "SpawnMoneyLoot": {
+          "$className": "RemoteEvent"
+        }
       }
     },
     "ServerScriptService": {

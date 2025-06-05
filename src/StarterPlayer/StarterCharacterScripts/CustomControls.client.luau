@@ -1,8 +1,8 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local StarterPlayer = game:GetService("StarterPlayer")
-local UserInputService = game:GetService("UserInputService")
+
+local Input = require(ReplicatedStorage:WaitForChild("Source").Utils.Input)
 
 local assets = ReplicatedStorage:WaitForChild("Assets") :: Folder
 local animations = assets:FindFirstChild("Animations") :: Folder
@@ -26,36 +26,50 @@ end)
 local moveDirection = Vector3.zero
 local isLaying = false
 
-local function startWalkingRight()
+local function updateWalkingState()
+    local direction = 0
+
+    if Input:IsKeyDown(Enum.KeyCode.Left) then
+        direction -= 1
+    end
+
+    if Input:IsKeyDown(Enum.KeyCode.Right) then
+        direction += 1
+    end
+
     if isLaying then
+        if direction == 0 then
+            layTrack:Play()
+        else
+            layTrack:Stop()
+        end
+    end
+
+    moveDirection = Vector3.new(direction, 0, 0)
+
+    repeat
+        task.wait()
+        humanoid:Move(moveDirection)
+    until humanoid.MoveDirection.X ~= direction
+end
+
+local function updateRunningState()
+    if Input:IsKeyDown(Enum.KeyCode.LeftShift) then
+        humanoid.WalkSpeed = StarterPlayer.CharacterWalkSpeed * 2
+    else
+        humanoid.WalkSpeed = StarterPlayer.CharacterWalkSpeed
+    end
+end
+
+local function updateLayingState()
+    if Input:IsKeyDown(Enum.KeyCode.Down) then
+        humanoid.WalkSpeed = 0
+        isLaying = true
+        layTrack:Play()
+    else
+        isLaying = false
         layTrack:Stop()
     end
-
-    moveDirection += Vector3.new(1, 0, 0)
-end
-
-local function stopWalkingRight()
-    if isLaying then
-        layTrack:Play()
-    end
-
-    moveDirection -= Vector3.new(1, 0, 0)
-end
-
-local function startWalkingLeft()
-    if isLaying then
-        layTrack:Stop()
-    end
-
-    moveDirection -= Vector3.new(1, 0, 0)
-end
-
-local function stopWalkingLeft()
-    if isLaying then
-        layTrack:Play()
-    end
-
-    moveDirection += Vector3.new(1, 0, 0)
 end
 
 local function jump()
@@ -69,62 +83,8 @@ local function jump()
     end
 end
 
-local function startRunning()
-    humanoid.WalkSpeed = StarterPlayer.CharacterWalkSpeed * 2
-end
-
-local function stopRunning()
-    humanoid.WalkSpeed = StarterPlayer.CharacterWalkSpeed
-end
-
-local function startLaying()
-    humanoid.WalkSpeed = 0
-    isLaying = true
-    layTrack:Play()
-end
-
-local function stopLaying()
-    isLaying = false
-    layTrack:Stop()
-end
-
-local function inputBegan(input: InputObject, gameProcessed: boolean)
-    if gameProcessed then
-        return
-    end
-
-    if input.KeyCode == Enum.KeyCode.Right then
-        startWalkingRight()
-    elseif input.KeyCode == Enum.KeyCode.Left then
-        startWalkingLeft()
-    elseif input.KeyCode == Enum.KeyCode.LeftAlt then
-        jump()
-    elseif input.KeyCode == Enum.KeyCode.LeftShift then
-        startRunning()
-    elseif input.KeyCode == Enum.KeyCode.Down then
-        startLaying()
-    end
-end
-
-local function inputEnded(input: InputObject, gameProcessed: boolean)
-    if gameProcessed then
-        return
-    end
-
-    if input.KeyCode == Enum.KeyCode.Right then
-        stopWalkingRight()
-    elseif input.KeyCode == Enum.KeyCode.Left then
-        stopWalkingLeft()
-    elseif input.KeyCode == Enum.KeyCode.LeftShift then
-        stopRunning()
-    elseif input.KeyCode == Enum.KeyCode.Down then
-        stopLaying()
-    end
-end
-
-UserInputService.InputBegan:Connect(inputBegan)
-UserInputService.InputEnded:Connect(inputEnded)
-
-RunService.RenderStepped:Connect(function()
-    humanoid:Move(moveDirection, false)
-end)
+Input.Pressed(Enum.KeyCode.Right):Connect(updateWalkingState).Released:Connect(updateWalkingState)
+Input.Pressed(Enum.KeyCode.Left):Connect(updateWalkingState).Released:Connect(updateWalkingState)
+Input.Pressed(Enum.KeyCode.LeftShift):Connect(updateRunningState).Released:Connect(updateRunningState)
+Input.Pressed(Enum.KeyCode.Down):Connect(updateLayingState).Released:Connect(updateLayingState)
+Input.Pressed(Enum.KeyCode.LeftAlt):Connect(jump)
