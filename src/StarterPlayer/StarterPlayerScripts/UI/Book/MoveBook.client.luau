@@ -4,9 +4,8 @@ local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local playerGui = player.PlayerGui
-local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui
-local phoneBackground = phoneGui:FindFirstChild("Background") :: ImageLabel
-local cover = phoneBackground:FindFirstChild("Cover") :: ImageLabel
+local bookGui = playerGui:WaitForChild("Book")
+local bookBackground = bookGui:FindFirstChild("Background") :: ImageLabel
 
 local dragging = false
 local dragStart = Vector2.zero
@@ -18,20 +17,18 @@ local function onInputBegan(input: InputObject)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = Vector2.new(mouse.X, mouse.Y)
-        guiStartPos = phoneBackground.Position
+        guiStartPos = bookBackground.Position
 
         while dragging do
             task.wait()
             local delta = Vector2.new(mouse.X, mouse.Y) - dragStart
-            phoneBackground.Position =
+            bookBackground.Position =
                 UDim2.new(guiStartPos.X.Scale, guiStartPos.X.Offset + delta.X, guiStartPos.Y.Scale, guiStartPos.Y.Offset + delta.Y)
         end
     end
 end
 
-for _, zone: GuiObject in ipairs({ cover, phoneBackground }) do
-    zone.InputBegan:Connect(onInputBegan)
-end
+bookBackground.InputBegan:Connect(onInputBegan)
 
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
