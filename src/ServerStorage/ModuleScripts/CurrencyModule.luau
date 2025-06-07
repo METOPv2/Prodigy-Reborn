@@ -12,7 +12,7 @@ function CurrencyModule.SpawnCash(position: Vector3, amount: number)
         amountOfDrops = 3
     end
 
-    for i = 1, amountOfDrops do
+    for _ = 1, amountOfDrops do
         local money = amount / amountOfDrops
 
         local part = Instance.new("Part")
