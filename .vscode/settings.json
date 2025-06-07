@@ -7,8 +7,12 @@
         "editor.defaultFormatter": "JohnnyMorganz.stylua",
         "editor.formatOnSave": true
     },
+    "[json]": {
+        "editor.defaultFormatter": "ClemensPeters.format-json",
+        "editor.formatOnSave": true
+    },
     "workbench.editor.customLabels.patterns": {
         "**/init.lua": "${dirname} (${filename}.${extname})",
         "**/init.luau": "${dirname} (${filename}.${extname})"
     }
-}   
+}

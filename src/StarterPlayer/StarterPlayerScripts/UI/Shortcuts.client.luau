@@ -3,6 +3,7 @@ local Players: Players = game:GetService("Players")
 local ReplicatedStorage: ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Input = require(ReplicatedStorage:WaitForChild("Source").Utils.Input)
+local Phone = require(ReplicatedStorage:WaitForChild("Source").ModuleScripts.Phone)
 
 local player: Player = Players.LocalPlayer
 local playerGui: PlayerGui = player.PlayerGui
@@ -28,3 +29,4 @@ end
 Input.Pressed(Enum.KeyCode.I):Connect(toggleInventoryGui)
 Input.Pressed(Enum.KeyCode.W):Connect(toggleWorldMapGui)
 Input.Pressed(Enum.KeyCode.B):Connect(toggleBookGui)
+Input.Pressed(Enum.KeyCode.P):Connect(Phone.TogglePhone)
