@@ -71,6 +71,7 @@ function AbilitiesManager.Dash()
     if
         (humanoid:GetState() ~= Enum.HumanoidStateType.Freefall and humanoid:GetState() ~= Enum.HumanoidStateType.Jumping)
         or AbilitiesManager.dashesActivated >= CharacterMovementSettings.MaxDashes
+        or not CharacterMovementSettings.AlllowToDashWithSpecialJump
     then
         return
     end
