@@ -23,6 +23,12 @@ local function initPlayerData(player: Player)
     if valuesSuccess then
         savedValues = savedValues or PlayerDataTemplate.Values
 
+        for name, value in pairs(PlayerDataTemplate.Values) do
+            if not savedValues[name] then
+                savedValues[name] = value
+            end
+        end
+
         local level = Instance.new("IntValue")
         level.Name = "Level"
         level.Value = savedValues.Level
@@ -47,6 +53,16 @@ local function initPlayerData(player: Player)
         maxStamina.Name = "MaxStamina"
         maxStamina.Value = 100
         maxStamina.Parent = playerData
+
+        local musicVolume = Instance.new("NumberValue")
+        musicVolume.Name = "MusicVolume"
+        musicVolume.Value = savedValues.MusicVolume
+        musicVolume.Parent = playerData
+
+        local sfxVolume = Instance.new("NumberValue")
+        sfxVolume.Name = "SFXVolume"
+        sfxVolume.Value = savedValues.SFXVolume
+        sfxVolume.Parent = playerData
 
         local currentStamina = Instance.new("IntValue")
         currentStamina.Name = "CurrentStamina"
