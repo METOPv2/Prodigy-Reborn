@@ -171,6 +171,8 @@ local function savePlayerData(player: Player)
     local playerEXP = playerData:FindFirstChild("EXP") :: IntValue
     local playerSkillPoints = playerData:FindFirstChild("SkillPoints") :: IntValue
     local currentStamina = playerData:FindFirstChild("CurrentStamina") :: IntValue
+    local musicVolume = playerData:FindFirstChild("MusicVolume") :: NumberValue
+    local sfxVolume = playerData:FindFirstChild("SFXVolume") :: NumberValue
 
     local values = {
         Money = playerMoney.Value,
@@ -178,6 +180,8 @@ local function savePlayerData(player: Player)
         EXP = playerEXP.Value,
         SkillPoints = playerSkillPoints.Value,
         Stamina = currentStamina.Value,
+        MusicVolume = musicVolume.Value,
+        SFXVolume = sfxVolume.Value,
     }
 
     local success = false

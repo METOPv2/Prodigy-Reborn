@@ -45,6 +45,9 @@
         },
         "SpawnMoneyLoot": {
           "$className": "RemoteEvent"
+        },
+        "ChangeVolume": {
+          "$className": "RemoteEvent"
         }
       }
     },

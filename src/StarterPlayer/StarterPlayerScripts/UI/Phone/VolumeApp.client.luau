@@ -1,5 +1,6 @@
 --!strict
 local Players: Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player: Player = Players.LocalPlayer
 local playerData = player:WaitForChild("PlayerData") :: Folder & {
@@ -8,6 +9,8 @@ local playerData = player:WaitForChild("PlayerData") :: Folder & {
 }
 local musicVolume: NumberValue = playerData.MusicVolume
 local sfxVolume: NumberValue = playerData.SFXVolume
+
+local changeVolumeRemoteEvent: RemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvents").ChangeVolume
 
 local playerGui: PlayerGui = player.PlayerGui
 local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
@@ -71,7 +74,7 @@ musicDragDetector.DragContinue:Connect(function()
 end)
 
 musicDragDetector.DragEnd:Connect(function()
-    -- send a server request
+    changeVolumeRemoteEvent:FireServer("Music", musicVolume.Value)
 end)
 
 sfxDragDetector.DragContinue:Connect(function()
@@ -79,5 +82,5 @@ sfxDragDetector.DragContinue:Connect(function()
 end)
 
 sfxDragDetector.DragEnd:Connect(function()
-    -- send a server request
+    changeVolumeRemoteEvent:FireServer("SFX", sfxVolume.Value)
 end)
