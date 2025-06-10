@@ -1,4 +1,5 @@
 --!strict
+local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local SoundService = game:GetService("SoundService")
 local TweenService = game:GetService("TweenService")
@@ -90,10 +91,10 @@ local phoneOpenPosition = phoneBackground:GetAttribute("OpenPosition") :: UDim2
 
 local preOpenCoverTweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 local generalTweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-local coinRollTweenInfo = TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-local coinGlowTweenInfo = TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-local gradientGlowTweenInfoIn = TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-local gradientGlowTweenInfoOut = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+local coinRollTweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local coinGlowTweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local gradientGlowTweenInfoIn = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+local gradientGlowTweenInfoOut = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 
 local colorlessLogoRollTweel = TweenService:Create(phoneLogoColorless, coinRollTweenInfo, { Rotation = 0, Position = UDim2.fromScale(0.5, 0.5) })
 local coinGlowTween = TweenService:Create(phoneLogo, coinGlowTweenInfo, { ImageTransparency = 0 })
@@ -199,6 +200,8 @@ local function loadInitialAnimation()
     end
     isInitialAnimationPlaying = true
 
+    ContentProvider:PreloadAsync({ phoneLogoColorless })
+
     openPhoneTween:Play()
     openPhoneTween.Completed:Wait()
 
@@ -212,6 +215,8 @@ local function loadInitialAnimation()
     colorlessLogoRollTweel:Play()
     colorlessLogoRollTweel.Completed:Wait()
 
+    ContentProvider:PreloadAsync({ phoneLogoGradient, phoneLogo })
+
     coinGlowTween:Play()
     gradientGlowTweenIn:Play()
     coinGlowTween.Completed:Wait()
@@ -223,7 +228,7 @@ local function loadInitialAnimation()
 
     isPhoneOpen = true
 
-    task.wait(getCoverAnimationTimeLength() + 1)
+    task.wait(getCoverAnimationTimeLength() + 0.5)
 
     openCover()
 
