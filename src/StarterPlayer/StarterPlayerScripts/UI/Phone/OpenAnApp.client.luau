@@ -1,5 +1,8 @@
 --!strict
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Phone = require(ReplicatedStorage:WaitForChild("Source").ModuleScripts.Phone)
 
 local phoneGui = Players.LocalPlayer.PlayerGui:WaitForChild("Phone") :: ScreenGui & {
     Background: ImageLabel & {
@@ -22,26 +25,18 @@ local function isItAnApp(instance: Instance): boolean
     return apps:FindFirstChild(instance.Name) ~= nil
 end
 
-local function openAnApp(appName: string)
-    local app = apps:FindFirstChild(appName) :: Frame
-    app.Visible = true
-
-    phoneGui:SetAttribute("CurrentApp", appName)
-end
-
-for _, v: Instance in ipairs(pages:GetChildren()) do
+for _, v in ipairs(pages:GetChildren()) do
     if not v:IsA("Frame") then
         continue
     end
 
     local page = v :: Frame & {
-        UIGridLayout: UIGradient,
         [string]: Frame & {
             TextButton: TextButton,
         },
     }
 
-    for _, v: Instance in ipairs(page:GetChildren()) do
+    for _, v in ipairs(page:GetChildren()) do
         if not v:IsA("Frame") or not isItAnApp(v) then
             continue
         end
@@ -51,7 +46,7 @@ for _, v: Instance in ipairs(pages:GetChildren()) do
         }
 
         app.TextButton.Activated:Connect(function()
-            openAnApp(app.Name)
+            Phone.OpenAnApp(app.Name)
         end)
     end
 end

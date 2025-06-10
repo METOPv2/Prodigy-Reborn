@@ -1,8 +1,11 @@
 --!strict
 local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoundService = game:GetService("SoundService")
 local TweenService = game:GetService("TweenService")
+
+local SideButtonsForEachApp = require(ReplicatedStorage:WaitForChild("Source").Settings.SideButtonsForApps)
 
 local player = Players.LocalPlayer
 local playerGui = player.PlayerGui
@@ -43,23 +46,7 @@ local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
         },
         Menu: ImageLabel & {
             Container: ImageLabel & {
-                Apps: Folder & {
-                    Friends: Frame,
-                    Volume: Frame & {
-                        SFX: Frame & {
-                            Slider: Frame & {
-                                Handle: Frame & { UIDragDetector: UIDragDetector },
-                            },
-                        },
-                        Music: Frame & {
-                            Slider: Frame & {
-                                Handle: Frame & {
-                                    UIDragDetector: UIDragDetector,
-                                },
-                            },
-                        },
-                    },
-                },
+                Apps: Folder,
             },
         },
     },
@@ -72,6 +59,12 @@ local phoneCoverLogoContainer = phoneCover.Logo
 local phoneLogo = phoneCoverLogoContainer.Logo
 local phoneLogoColorless = phoneCoverLogoContainer.LogoColorless
 local phoneLogoGradient = phoneCoverLogoContainer.Gradient
+
+local apps = phoneBackground.Menu.Container.Apps
+local button1 = phoneBackground.Button1
+local button2 = phoneBackground.Button2
+local buttonConnections = {}
+local currentApp = ""
 
 local sfxGroup = SoundService:WaitForChild("SFX") :: SoundGroup & {
     CoverOpen: Sound,
@@ -179,6 +172,9 @@ local function closeCover()
     phoneCoverContainer.Visible = false
 
     closePhoneCoverTween:Play()
+    closePhoneCoverTween.Completed:Wait()
+
+    Phone.CloseAllApps()
 end
 
 local function closePhone()
@@ -255,6 +251,84 @@ function Phone.ToggleCover()
         openCover()
     else
         closeCover()
+    end
+end
+
+local function setupSideButtonsForAnApp(app: string)
+    local buttonsData = SideButtonsForEachApp[app:lower()]
+    if buttonsData.button1 then
+        button1.ImageLabel.Image = buttonsData.button1.ImageId
+        button1.BackgroundColor3 = buttonsData.button1.BackgroundColor
+        button1.Visible = true
+    else
+        button1.Visible = false
+    end
+
+    if buttonsData.button2 then
+        button2.ImageLabel.Image = buttonsData.button2.ImageId
+        button2.BackgroundColor3 = buttonsData.button2.BackgroundColor
+        button2.Visible = true
+    else
+        button2.Visible = false
+    end
+
+    if app == "Volume" then
+        local connection = button1.TextButton.Activated:Once(function()
+            Phone.CloseAnApp(app)
+        end)
+
+        table.insert(buttonConnections, connection)
+    end
+end
+
+function Phone.OpenAnApp(name: string)
+    local anApp = apps:FindFirstChild(name) :: Frame
+
+    if not anApp then
+        return
+    end
+
+    if currentApp == name then
+        Phone.CloseAnApp(currentApp)
+        return
+    elseif currentApp then
+        Phone.CloseAnApp(currentApp)
+    end
+
+    currentApp = name
+    anApp.Visible = true
+    setupSideButtonsForAnApp(name)
+end
+
+function Phone.CloseAnApp(name: string)
+    local anApp = apps:FindFirstChild(name) :: Frame
+
+    if not anApp then
+        return
+    end
+
+    if currentApp == name then
+        currentApp = ""
+    end
+
+    anApp.Visible = false
+    button1.Visible = false
+    button2.Visible = false
+
+    for _, connection: RBXScriptConnection in ipairs(buttonConnections) do
+        connection:Disconnect()
+    end
+end
+
+function Phone.CloseAllApps()
+    currentApp = ""
+
+    for _, app in ipairs(apps:GetChildren()) do
+        if not app:IsA("Frame") then
+            continue
+        end
+
+        Phone.CloseAnApp(app.Name)
     end
 end
 
