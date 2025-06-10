@@ -70,7 +70,7 @@ sfxSlideHandle.Position = UDim2.new(
 )
 
 musicDragDetector.DragContinue:Connect(function()
-    musicVolume.Value = math.clamp(musicSlideHandle.Position.X.Offset / (musicSlider.AbsoluteSize.X - 10), 0, 1)
+    musicVolume.Value = math.round(math.clamp(musicSlideHandle.Position.X.Offset / (musicSlider.AbsoluteSize.X - 10), 0, 1) * 10) / 10
 end)
 
 musicDragDetector.DragEnd:Connect(function()
@@ -78,7 +78,7 @@ musicDragDetector.DragEnd:Connect(function()
 end)
 
 sfxDragDetector.DragContinue:Connect(function()
-    sfxVolume.Value = math.clamp(sfxSlideHandle.Position.X.Offset / (sfxSlider.AbsoluteSize.X - 10), 0, 1)
+    sfxVolume.Value = math.round(math.clamp(sfxSlideHandle.Position.X.Offset / (sfxSlider.AbsoluteSize.X - 10), 0, 1) * 10) / 10
 end)
 
 sfxDragDetector.DragEnd:Connect(function()
