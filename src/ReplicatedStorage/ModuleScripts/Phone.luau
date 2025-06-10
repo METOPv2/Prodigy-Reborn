@@ -278,6 +278,12 @@ local function setupSideButtonsForAnApp(app: string)
         end)
 
         table.insert(buttonConnections, connection)
+    elseif app == "Friends" then
+        local connection = button1.TextButton.Activated:Once(function()
+            Phone.CloseAnApp(app)
+        end)
+
+        table.insert(buttonConnections, connection)
     end
 end
 
