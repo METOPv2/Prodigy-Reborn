@@ -11,8 +11,17 @@
       "Source": {
         "$path": "src/ReplicatedStorage"
       },
+      "RemoteFunctions": {
+        "$className": "Folder",
+        "CheckUsername": {
+          "$className": "RemoteFunction"
+        }
+      },
       "RemoteEvents": {
         "$className": "Folder",
+        "ConfirmUsername": {
+          "$className": "RemoteEvent"
+        },
         "ActivateDash": {
           "$className": "RemoteEvent"
         },
@@ -47,6 +56,9 @@
           "$className": "RemoteEvent"
         },
         "ChangeVolume": {
+          "$className": "RemoteEvent"
+        },
+        "JoinedForTheFirstTime": {
           "$className": "RemoteEvent"
         }
       }

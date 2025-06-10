@@ -17,6 +17,7 @@ return {
         SkillPoints = 50,
         MusicVolume = 0.5,
         SFXVolume = 0.5,
+        Username = "",
     },
     Stats = {
         HP = 30,

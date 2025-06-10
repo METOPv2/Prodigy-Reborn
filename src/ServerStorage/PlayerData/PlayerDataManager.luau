@@ -1,5 +1,6 @@
 --!strict
 local DataStoreService = game:GetService("DataStoreService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
 local InventoryDataStore = DataStoreService:GetDataStore("PlayerData")
@@ -8,6 +9,8 @@ local StatsStore = DataStoreService:GetDataStore("Player", "Stats")
 
 local PlayerDataTemplate = require(ServerStorage.Source.PlayerData.PlayerDataTemplate)
 local PlayerDataStoreSettings = require(ServerStorage.Source.Settings.PlayerDataStore)
+
+local joinedForTheFirstTimeRemoteEvent = ReplicatedStorage.RemoteEvents.JoinedForTheFirstTime
 
 local PlayerDataManager = {}
 local Loaded = {}
@@ -21,13 +24,21 @@ local function initPlayerData(player: Player)
     end)
 
     if valuesSuccess then
-        savedValues = savedValues or PlayerDataTemplate.Values
-
-        for name, value in pairs(PlayerDataTemplate.Values) do
-            if not savedValues[name] then
-                savedValues[name] = value
+        if savedValues then
+            for name, value in pairs(PlayerDataTemplate.Values) do
+                if not savedValues[name] then
+                    savedValues[name] = value
+                end
             end
+        else
+            savedValues = PlayerDataTemplate.Values
         end
+
+        if savedValues.Username == "" then
+            joinedForTheFirstTimeRemoteEvent:FireClient(player, savedValues.Username)
+        end
+
+        player:SetAttribute("Username", savedValues.Username)
 
         local level = Instance.new("IntValue")
         level.Name = "Level"
@@ -182,6 +193,7 @@ local function savePlayerData(player: Player)
         Stamina = currentStamina.Value,
         MusicVolume = musicVolume.Value,
         SFXVolume = sfxVolume.Value,
+        Username = player:GetAttribute("Username") or "",
     }
 
     local success = false
