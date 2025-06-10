@@ -1,6 +1,2 @@
 recreate stamina system (server side connected replicatedstorage/modulescripts/staminamanager)
 bring back stamina for the dash and the special jump
-
-bind I for inventory
-bind W for world map
-bind S for the book

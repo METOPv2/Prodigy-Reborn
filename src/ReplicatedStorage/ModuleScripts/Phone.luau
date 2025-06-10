@@ -5,12 +5,68 @@ local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local playerGui = player.PlayerGui
-local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui
-local phoneBackground = phoneGui:FindFirstChild("Background") :: ImageLabel
-local phoneCover = phoneBackground:FindFirstChild("Cover") :: ImageLabel
+local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
+    Background: ImageLabel & {
+        Button1: Frame & {
+            TextButton: TextButton,
+            ImageLabel: ImageLabel,
+        },
+        Button2: Frame & {
+            TextButton: TextButton,
+            ImageLabel: ImageLabel,
+        },
+        Cover: ImageLabel & {
+            Container: Frame & {
+                Next: Frame & {
+                    TextButton: TextButton,
+                },
+                Pages: Frame & {
+                    Page1: Frame & {
+                        Friends: Frame & {
+                            TextButton: TextButton,
+                        },
+                        Volume: Frame & {
+                            TextButton: TextButton,
+                        },
+                    },
+                },
+                Previous: Frame & {
+                    TextButton: TextButton,
+                },
+            },
+        },
+        Menu: ImageLabel & {
+            Container: ImageLabel & {
+                Apps: Folder & {
+                    Friends: Frame,
+                    Volume: Frame & {
+                        SFX: Frame & {
+                            Slider: Frame & {
+                                Handle: Frame & { UIDragDetector: UIDragDetector },
+                            },
+                        },
+                        Music: Frame & {
+                            Slider: Frame & {
+                                Handle: Frame & {
+                                    UIDragDetector: UIDragDetector,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
+}
+local phoneBackground = phoneGui.Background
+local phoneCover = phoneBackground.Cover
 
-local coverOpenSound: Sound = SoundService:WaitForChild("SFX").CoverOpen
-local coverClosedSound: Sound = SoundService:WaitForChild("SFX").CoverClosed
+local sfxGroup = SoundService:WaitForChild("SFX") :: SoundGroup & {
+    CoverOpen: Sound,
+    CoverClosed: Sound,
+}
+local coverOpenSound = sfxGroup.CoverOpen
+local coverClosedSound = sfxGroup.CoverClosed
 
 local coverClosePosition = phoneCover:GetAttribute("ClosePosition") :: UDim2
 local coverPreOpenPosition = phoneCover:GetAttribute("PreOpenPosition") :: UDim2
@@ -31,70 +87,91 @@ local closePhoneCoverTween = TweenService:Create(phoneCover, generalTweenInfo, {
 
 phoneBackground.Position = phoneClosePosition
 phoneCover.Position = coverClosePosition
-
 phoneGui.Enabled = true
 
 local isPhoneOpen = false
 local isCoverOpen = false
 
-openPhoneCoverTweenPart1.Completed:Connect(function()
-    if isCoverOpen then
-        coverOpenSound:Play()
-    else
-        coverClosedSound:Play()
-    end
-end)
-
 local Phone = {}
 
-function Phone.TogglePhone(): ()
-    if not isPhoneOpen then
-        isPhoneOpen = true
-        openPhoneTween:Play()
-        openPhoneTween.Completed:Once(function()
-            if isPhoneOpen and not isCoverOpen then
-                isCoverOpen = true
-                openPhoneCoverTweenPart1:Play()
-                openPhoneCoverTweenPart1.Completed:Wait()
-                openPhoneCoverTweenPart2:Play()
-            end
-        end)
-    else
-        if isCoverOpen then
-            isCoverOpen = false
-            phoneBackground.Position = phoneOpenPosition
-            openPhoneCoverTweenPart1:Play()
-            openPhoneCoverTweenPart1.Completed:Wait()
-            closePhoneCoverTween:Play()
-            closePhoneCoverTween.Completed:Once(function()
-                if isPhoneOpen and not isCoverOpen then
-                    isPhoneOpen = false
-                    closePhoneTween:Play()
-                end
-            end)
-        else
-            isPhoneOpen = false
-            phoneBackground.Position = phoneOpenPosition
-            closePhoneTween:Play()
-        end
-    end
-end
-
-function Phone.ToggleCover(): ()
+local function openCover()
     if not isPhoneOpen then
         return
     end
 
+    isCoverOpen = true
+
+    coverOpenSound:Play()
+    openPhoneCoverTweenPart1:Play()
+    openPhoneCoverTweenPart1.Completed:Wait()
+
     if not isCoverOpen then
-        isCoverOpen = true
-        openPhoneCoverTweenPart1:Play()
-        openPhoneCoverTweenPart1.Completed:Wait()
-        openPhoneCoverTweenPart2:Play()
+        return
+    end
+
+    openPhoneCoverTweenPart2:Play()
+end
+
+local function getCoverAnimationTimeLength(): number
+    return openPhoneCoverTweenPart1.TweenInfo.Time + closePhoneCoverTween.TweenInfo.Time
+end
+
+local function openPhone()
+    isPhoneOpen = true
+    openPhoneTween:Play()
+    openPhoneTween.Completed:Wait()
+
+    if not isPhoneOpen then
+        return
+    end
+
+    openCover()
+end
+
+local function closeCover()
+    if not isCoverOpen then
+        return
+    end
+
+    isCoverOpen = false
+
+    coverClosedSound:Play()
+    openPhoneCoverTweenPart1:Play()
+    openPhoneCoverTweenPart1.Completed:Wait()
+
+    if isCoverOpen then
+        return
+    end
+
+    closePhoneCoverTween:Play()
+end
+
+local function closePhone()
+    isPhoneOpen = false
+    phoneBackground.Position = phoneOpenPosition
+    closeCover()
+    task.wait(getCoverAnimationTimeLength())
+
+    if isPhoneOpen then
+        return
+    end
+
+    closePhoneTween:Play()
+end
+
+function Phone.TogglePhone()
+    if not isPhoneOpen then
+        openPhone()
     else
-        isCoverOpen = false
-        openPhoneCoverTweenPart1:Play()
-        openPhoneCoverTweenPart1.Completed:Wait()
-        closePhoneCoverTween:Play()
+        closePhone()
+    end
+end
+
+function Phone.ToggleCover()
+    if not isCoverOpen then
+        openCover()
+    else
+        closeCover()
     end
 end
 
