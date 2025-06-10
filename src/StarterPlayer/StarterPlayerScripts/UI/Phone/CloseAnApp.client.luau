@@ -1,11 +1,9 @@
 --!strict
-local Players: Players = game:GetService("Players")
+local Players = game:GetService("Players")
 
-local player: Player = Players.LocalPlayer
-local playerGui: PlayerGui = player.PlayerGui
-local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
+local phoneGui = Players.LocalPlayer.PlayerGui:WaitForChild("Phone") :: ScreenGui & {
     Background: ImageButton & {
-        Close: Frame & {
+        Button1: Frame & {
             TextButton: TextButton,
         },
         Menu: ImageLabel & {
@@ -15,9 +13,9 @@ local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
         },
     },
 }
-local closeApp: Frame & { TextButton: TextButton } = phoneGui.Background.Close
-local closeAppButton: TextButton = closeApp.TextButton
-local apps: Frame = phoneGui.Background.Menu.Container.Apps
+local closeApp = phoneGui.Background.Button1
+local closeAppButton = closeApp.TextButton
+local apps = phoneGui.Background.Menu.Container.Apps
 
 closeApp.Visible = false
 
@@ -25,7 +23,7 @@ phoneGui:GetAttributeChangedSignal("CurrentApp"):Connect(function()
     closeApp.Visible = phoneGui:GetAttribute("CurrentApp") ~= ""
 end)
 
-local function closeAnApp(): ()
+local function closeAnApp()
     local currentAppName = phoneGui:GetAttribute("CurrentApp") :: string
     local app = apps:FindFirstChild(currentAppName) :: Frame
     app.Visible = false

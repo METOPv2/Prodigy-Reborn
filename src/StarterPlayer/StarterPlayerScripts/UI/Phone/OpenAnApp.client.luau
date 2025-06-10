@@ -1,26 +1,28 @@
 --!strict
-local Players: Players = game:GetService("Players")
+local Players = game:GetService("Players")
 
-local player: Player = Players.LocalPlayer
-local playerGui: PlayerGui = player.PlayerGui
-local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
+local phoneGui = Players.LocalPlayer.PlayerGui:WaitForChild("Phone") :: ScreenGui & {
     Background: ImageLabel & {
+        Cover: ImageLabel & {
+            Container: CanvasGroup & {
+                Pages: Frame,
+            },
+        },
         Menu: ImageLabel & {
             Container: ImageLabel & {
-                Apps: Folder & { Frame },
-                Pages: Frame,
+                Apps: Folder,
             },
         },
     },
 }
-local apps: Frame = phoneGui.Background.Menu.Container.Apps
-local pages: Frame = phoneGui.Background.Menu.Container.Pages
+local apps = phoneGui.Background.Menu.Container.Apps
+local pages = phoneGui.Background.Cover.Container.Pages
 
 local function isItAnApp(instance: Instance): boolean
     return apps:FindFirstChild(instance.Name) ~= nil
 end
 
-local function openAnApp(appName: string): ()
+local function openAnApp(appName: string)
     local app = apps:FindFirstChild(appName) :: Frame
     app.Visible = true
 

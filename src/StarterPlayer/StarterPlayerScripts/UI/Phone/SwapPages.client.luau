@@ -1,12 +1,10 @@
 --!strict
-local Players: Players = game:GetService("Players")
+local Players = game:GetService("Players")
 
-local player: Player = Players.LocalPlayer
-local playerGui: PlayerGui = player.PlayerGui
-local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
+local phoneGui = Players.LocalPlayer.PlayerGui:WaitForChild("Phone") :: ScreenGui & {
     Background: ImageLabel & {
-        Menu: ImageLabel & {
-            Container: ImageLabel & {
+        Cover: ImageLabel & {
+            Container: CanvasGroup & {
                 Pages: Frame & {
                     UIPageLayout: UIPageLayout,
                 },
@@ -20,12 +18,9 @@ local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
         },
     },
 }
-local nextPageButton: TextButton = phoneGui.Background.Menu.Container.Next.TextButton
-local previousPageButton: TextButton = phoneGui.Background.Menu.Container.Previous.TextButton
-local pages: Frame & {
-    UIPageLayout: UIPageLayout,
-} = phoneGui.Background.Menu.Container.Pages
-local uiPageLayout: UIPageLayout = pages.UIPageLayout
+local nextPageButton = phoneGui.Background.Cover.Container.Next.TextButton
+local previousPageButton = phoneGui.Background.Cover.Container.Previous.TextButton
+local uiPageLayout = phoneGui.Background.Cover.Container.Pages.UIPageLayout
 
 local function nextPage(): ()
     uiPageLayout:Next()

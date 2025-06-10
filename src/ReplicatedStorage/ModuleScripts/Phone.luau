@@ -16,7 +16,7 @@ local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
             ImageLabel: ImageLabel,
         },
         Cover: ImageLabel & {
-            Container: Frame & {
+            Container: CanvasGroup & {
                 Next: Frame & {
                     TextButton: TextButton,
                 },
@@ -60,6 +60,7 @@ local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
 }
 local phoneBackground = phoneGui.Background
 local phoneCover = phoneBackground.Cover
+local phoneCoverContainer = phoneCover.Container
 
 local sfxGroup = SoundService:WaitForChild("SFX") :: SoundGroup & {
     CoverOpen: Sound,
@@ -109,6 +110,8 @@ local function openCover()
         return
     end
 
+    phoneCoverContainer.Rotation = 180
+
     openPhoneCoverTweenPart2:Play()
 end
 
@@ -142,6 +145,8 @@ local function closeCover()
     if isCoverOpen then
         return
     end
+
+    phoneCoverContainer.Rotation = 0
 
     closePhoneCoverTween:Play()
 end
