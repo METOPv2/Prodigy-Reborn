@@ -8,8 +8,7 @@ local player = Players.LocalPlayer
 
 local assets = ReplicatedStorage:WaitForChild("Assets") :: Folder
 local animations = assets:FindFirstChild("Animations") :: Folder
-local dash1Animation = animations:FindFirstChild("Dash1") :: Animation
-local dash2Animation = animations:FindFirstChild("Dash2") :: Animation
+local dashAnimation = animations:FindFirstChild("Dash") :: Animation
 
 local particleAssets = assets:FindFirstChild("Particles") :: Folder
 local specialJumpParticlesTemplate = particleAssets:FindFirstChild("SpecialJump") :: BasePart
@@ -78,17 +77,8 @@ function AbilitiesManager.Dash()
 
     local animator = humanoid:WaitForChild("Animator") :: Animator
 
-    local dash1Track = animator:LoadAnimation(dash1Animation)
-    dash1Track.Looped = false
-
-    local dash2Track = animator:LoadAnimation(dash2Animation)
-    dash2Track.Looped = false
-
-    if math.random() < 0.5 then
-        dash1Track:Play()
-    else
-        dash2Track:Play()
-    end
+    local dashTrack = animator:LoadAnimation(dashAnimation)
+    dashTrack:Play()
 
     local characterMass = 0
     for _, part in ipairs(character:GetDescendants()) do
