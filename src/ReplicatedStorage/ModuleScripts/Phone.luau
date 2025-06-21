@@ -7,6 +7,8 @@ local TweenService = game:GetService("TweenService")
 
 local SideButtonsForEachApp = require(ReplicatedStorage:WaitForChild("Source").Settings.SideButtonsForApps)
 
+local getFriendDataRemoteFunction = ReplicatedStorage:WaitForChild("RemoteFunctions").GetFriendData
+
 local player = Players.LocalPlayer
 local playerGui = player.PlayerGui
 local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
@@ -25,6 +27,17 @@ local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
                 Logo: ImageLabel,
                 LogoColorless: ImageLabel,
             },
+            FriendInfo: CanvasGroup & {
+                Main: Frame & {
+                    InGameName: TextLabel,
+                    ClassType: TextLabel,
+                    LastOnline: TextLabel,
+                    Username: TextLabel,
+                    Level: TextLabel,
+                },
+                Thumbnail: ImageLabel,
+            },
+            Mute: Frame,
             Container: CanvasGroup & {
                 Next: Frame & {
                     TextButton: TextButton,
@@ -46,7 +59,13 @@ local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
         },
         Menu: ImageLabel & {
             Container: ImageLabel & {
-                Apps: Folder,
+                Apps: Folder & {
+                    Friends: Frame & {
+                        Holder: ScrollingFrame & {
+                            NoFriends: TextLabel,
+                        },
+                    },
+                },
             },
         },
     },
@@ -54,11 +73,41 @@ local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui & {
 local phoneBackground = phoneGui.Background
 local phoneCover = phoneBackground.Cover
 local phoneCoverContainer = phoneCover.Container
+local muteScreen = phoneCover.Mute
 
 local phoneCoverLogoContainer = phoneCover.Logo
 local phoneLogo = phoneCoverLogoContainer.Logo
 local phoneLogoColorless = phoneCoverLogoContainer.LogoColorless
 local phoneLogoGradient = phoneCoverLogoContainer.Gradient
+
+type FriendTemplate = Frame & {
+    OpeningContainer: Frame & {
+        TextButton: TextButton,
+    },
+    Thumbnail: ImageLabel,
+    DisplayName: TextLabel,
+    OnlineStatus: TextLabel,
+    UserName: TextLabel,
+    UIStroke: UIStroke,
+}
+
+local assets = ReplicatedStorage:WaitForChild("Assets") :: Folder & {
+    UI: Folder & {
+        Phone: Folder & {
+            FriendTemplate: FriendTemplate,
+        },
+    },
+}
+local friendTemplate = assets.UI.Phone.FriendTemplate
+local friendsHolder = phoneBackground.Menu.Container.Apps.Friends.Holder
+local noFriendsLabel = friendsHolder.NoFriends
+local friendInfo = phoneCover.FriendInfo
+local friendInfoMain = friendInfo.Main
+local friendInfoThumbnail = friendInfo.Thumbnail
+
+local isFriendsListRefreshing = false
+
+friendInfo.Rotation = 180
 
 local apps = phoneBackground.Menu.Container.Apps
 local button1 = phoneBackground.Button1
@@ -234,6 +283,145 @@ local function loadInitialAnimation()
     initialAnimationLoaded = true
 end
 
+local function getInGameFriendData(friendId: number)
+    return getFriendDataRemoteFunction:InvokeServer(friendId)
+end
+
+local currentPlayerProfile = nil
+
+local function openPlayerProfile(playerFrame)
+    muteScreen.Visible = true
+
+    local userId = playerFrame.Name
+    local sucess, data = getInGameFriendData(userId)
+
+    if not sucess then
+        warn(data)
+        return
+    end
+
+    if currentPlayerProfile == userId then
+        muteScreen.Visible = false
+        friendInfo.Visible = false
+        return
+    end
+
+    currentPlayerProfile = userId
+
+    friendInfoThumbnail.Image = Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.AvatarBust, Enum.ThumbnailSize.Size60x60)
+    friendInfoMain.InGameName.Text = string.format("In-game name: %s", data.Username)
+    friendInfoMain.Username.Text = string.format("Username: %s", Players:GetNameFromUserIdAsync(userId))
+    friendInfoMain.ClassType.Text = string.format("Class Type: %s", data.ClassType)
+    friendInfoMain.LastOnline.Text = string.format("Last Online: %s", data.LastOnline)
+    friendInfoMain.Level.Text = string.format("Level: %d", data.Level)
+
+    muteScreen.Visible = false
+    friendInfo.Visible = true
+end
+
+local function initializePlayerFrame(playerFrame)
+    local openProfileButton = playerFrame.OpeningContainer.TextButton
+    openProfileButton.Activated:Connect(function()
+        openPlayerProfile(playerFrame)
+    end)
+end
+
+function Phone.RefreshFriendsList()
+    if isFriendsListRefreshing then
+        return
+    end
+
+    isFriendsListRefreshing = true
+
+    for _, friendFrame in ipairs(friendsHolder:GetChildren()) do
+        if friendFrame:IsA("Frame") then
+            friendFrame:Destroy()
+        end
+    end
+
+    local friends = player:GetFriendsOnline()
+
+    for _, friend in ipairs(friends) do
+        local friendFrame = friendTemplate:Clone()
+        friendFrame.Name = friend.VisitorId
+        friendFrame.Thumbnail.Image = Players:GetUserThumbnailAsync(friend.VisitorId, Enum.ThumbnailType.AvatarBust, Enum.ThumbnailSize.Size48x48)
+        friendFrame.UserName.Text = friend.UserName
+        friendFrame.DisplayName.Text = friend.DisplayName
+
+        if friend.IsOnline then
+            if friend.LocationType == 1 or friend.LocationType == 4 or friend.LocationType == 5 then
+                friendFrame.OnlineStatus.Text = friend.GameId == game.GameId and "Playing RP" or "Other"
+                friendFrame.UIStroke.Color = Color3.fromRGB(0, 199, 0)
+                friendFrame.OnlineStatus.TextColor3 = Color3.fromRGB(0, 199, 0)
+            elseif friend.LocationType == 3 or friend.LocationType == 6 then
+                friendFrame.OnlineStatus.Text = "In Studio"
+                friendFrame.UIStroke.Color = Color3.fromRGB(255, 153, 0)
+                friendFrame.OnlineStatus.TextColor3 = Color3.fromRGB(255, 153, 0)
+            elseif friend.LocationType == 0 or friend.LocationType == 2 then
+                friendFrame.OnlineStatus.Text = "Online"
+                friendFrame.UIStroke.Color = Color3.fromRGB(0, 47, 255)
+                friendFrame.OnlineStatus.TextColor3 = Color3.fromRGB(0, 47, 255)
+            end
+        else
+            friendFrame.OnlineStatus.Text = "Offline"
+            friendFrame.UIStroke.Color = Color3.fromRGB(13, 13, 13)
+            friendFrame.OnlineStatus.TextColor3 = Color3.fromRGB(30, 30, 30)
+        end
+
+        friendFrame.Parent = friendsHolder
+
+        initializePlayerFrame(friendFrame)
+    end
+
+    local function iterPageItems(pages)
+        return coroutine.wrap(function()
+            local pagenum = 1
+            while true do
+                for _, item in ipairs(pages:GetCurrentPage()) do
+                    if friendsHolder:FindFirstChild(item.Id) then
+                        continue
+                    end
+
+                    coroutine.yield(item, pagenum)
+                end
+                if pages.IsFinished then
+                    break
+                end
+                pages:AdvanceToNextPageAsync()
+                pagenum = pagenum + 1
+            end
+        end)
+    end
+
+    local friendPages = Players:GetFriendsAsync(player.UserId)
+    local items = {}
+    for item, _pageNo in iterPageItems(friendPages) do
+        table.insert(items, item)
+    end
+
+    if #items == 0 then
+        noFriendsLabel.Visible = true
+        noFriendsLabel.Text = "No friends online"
+        return
+    else
+        noFriendsLabel.Visible = false
+    end
+
+    for _, friend in ipairs(items) do
+        local friendFrame = friendTemplate:Clone()
+        friendFrame.Name = friend.Id
+        friendFrame.UserName.Text = friend.Username
+        friendFrame.DisplayName.Text = friend.DisplayName
+        friendFrame.Thumbnail.Image = Players:GetUserThumbnailAsync(friend.Id, Enum.ThumbnailType.AvatarBust, Enum.ThumbnailSize.Size48x48)
+        friendFrame.OnlineStatus.Text = "Offline"
+        friendFrame.Parent = friendsHolder
+
+        initializePlayerFrame(friendFrame)
+    end
+
+    isFriendsListRefreshing = false
+end
+
 function Phone.TogglePhone()
     if not initialAnimationLoaded then
         return loadInitialAnimation()
@@ -273,17 +461,22 @@ local function setupSideButtonsForAnApp(app: string)
     end
 
     if app == "Volume" then
-        local connection = button1.TextButton.Activated:Once(function()
+        local closeConnection = button1.TextButton.Activated:Once(function()
             Phone.CloseAnApp(app)
         end)
 
-        table.insert(buttonConnections, connection)
+        table.insert(buttonConnections, closeConnection)
     elseif app == "Friends" then
-        local connection = button1.TextButton.Activated:Once(function()
+        local closeConnection = button1.TextButton.Activated:Once(function()
             Phone.CloseAnApp(app)
         end)
 
-        table.insert(buttonConnections, connection)
+        local refreshConnection = button2.TextButton.Activated:Once(function()
+            Phone.RefreshFriendsList()
+        end)
+
+        table.insert(buttonConnections, closeConnection)
+        table.insert(buttonConnections, refreshConnection)
     end
 end
 

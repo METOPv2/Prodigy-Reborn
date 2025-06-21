@@ -15,6 +15,9 @@
         "$className": "Folder",
         "CheckUsername": {
           "$className": "RemoteFunction"
+        },
+        "GetFriendData": {
+          "$className": "RemoteFunction"
         }
       },
       "RemoteEvents": {
