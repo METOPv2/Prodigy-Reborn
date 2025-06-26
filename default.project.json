@@ -22,6 +22,9 @@
       },
       "RemoteEvents": {
         "$className": "Folder",
+        "ChangeSettings": {
+          "$className": "RemoteEvent"
+        },
         "ConfirmUsername": {
           "$className": "RemoteEvent"
         },

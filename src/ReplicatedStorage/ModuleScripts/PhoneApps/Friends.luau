@@ -6,43 +6,68 @@ local getFriendDataRemoteFunction = ReplicatedStorage:WaitForChild("RemoteFuncti
 local player = Players.LocalPlayer
 local phoneBackground = player.PlayerGui:WaitForChild("Phone").Background
 local friendsHolder = phoneBackground.Menu.Container.Apps.Friends.Holder
-local searchBox = phoneBackground.Cover.Container.Friends.SearchBox
+
 local noFriendsLabel = friendsHolder.NoFriends
-local muteScreen = phoneBackground.Cover.Container.Mute
-local friendInfo = phoneBackground.Cover.Container.FriendInfo
+local coverContainer = phoneBackground.Cover.Container
+local muteScreen = coverContainer.Mute
+local friendInfo = coverContainer.FriendInfo
 local friendInfoMain = friendInfo.Main
+local searchBox = coverContainer.Friends.SearchBox
+local failedToOpenPlayerProfile = coverContainer.Friends.FailedToOpenPlayerProfile
 
 local friendTemplate = ReplicatedStorage:WaitForChild("Assets").UI.Phone.FriendTemplate
 
 local Friends = {}
-local currentPlayerProfile = nil
+
+local function abbreviateSeconds(seconds)
+	if seconds < 60 then
+		return tostring(math.floor(seconds)) .. "s"
+	elseif seconds < 3600 then
+		return tostring(math.floor(seconds / 60)) .. "m"
+	elseif seconds < 86400 then
+		return tostring(math.floor(seconds / 3600)) .. "h"
+	elseif seconds < 604800 then
+		return tostring(math.floor(seconds / 86400)) .. "d"
+	elseif seconds < 2592000 then
+		return tostring(math.floor(seconds / 604800)) .. "w"
+	elseif seconds < 31536000 then
+		return tostring(math.floor(seconds / 2592000)) .. "mo"
+	else
+		return "more than a year"
+	end
+end
 
 local function openPlayerProfile(playerFrame)
-	muteScreen.Visible = true
-
 	local userId = playerFrame.Name
+	if friendInfo:GetAttribute("CurrentPlayer") == userId then
+		friendInfo:SetAttribute("CurrentPlayer", nil)
+		friendInfo.Visible = false
+		return
+	else
+		muteScreen.Visible = true
+	end
+
 	local success, data = getFriendDataRemoteFunction:InvokeServer(userId)
 
 	if not success then
-		warn(data)
+		failedToOpenPlayerProfile.TextLabel.Text = data
+		failedToOpenPlayerProfile.TextButton.Activated:Once(function()
+			failedToOpenPlayerProfile.Visible = false
+		end)
+		failedToOpenPlayerProfile.Visible = true
 		muteScreen.Visible = false
 		return
 	end
 
-	if currentPlayerProfile == userId then
-		muteScreen.Visible = false
-		friendInfo.Visible = false
-		return
-	end
-
-	currentPlayerProfile = userId
+	friendInfo:SetAttribute("CurrentPlayer", userId)
 
 	friendInfo.Thumbnail.Image = game.Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.AvatarBust, Enum.ThumbnailSize.Size60x60)
-	friendInfoMain.InGameName.Text = string.format("In-game name: %s", data.Username)
-	friendInfoMain.Username.Text = string.format("Username: %s", game.Players:GetNameFromUserIdAsync(userId))
-	friendInfoMain.ClassType.Text = string.format("Class Type: %s", data.ClassType)
-	friendInfoMain.LastOnline.Text = string.format("Last Online: %s", data.LastOnline)
-	friendInfoMain.Level.Text = string.format("Level: %d", data.Level)
+	friendInfoMain.InGameName.Text = string.format("%s", data.Username)
+	friendInfoMain.Username.Text = string.format("@%s", game.Players:GetNameFromUserIdAsync(userId))
+	friendInfoMain.ClassType.Text = string.format("Class: %s", data.ClassType)
+	friendInfoMain.LastOnline.Text =
+		string.format("Online: %s", type(data.LastOnline) == "number" and abbreviateSeconds(data.LastOnline) .. " ago" or data.LastOnline)
+	friendInfoMain.Level.Text = string.format("Lvl: %d", data.Level)
 
 	muteScreen.Visible = false
 	friendInfo.Visible = true

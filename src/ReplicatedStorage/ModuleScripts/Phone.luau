@@ -64,6 +64,10 @@ local function openCover()
 		return
 	end
 
+	for _, v in ipairs(coverContainer:GetChildren()) do
+		v.Visible = v.Name == "Apps"
+	end
+
 	coverContainer.Rotation = 180
 
 	openCoverTween:Play()
@@ -93,6 +97,10 @@ local function closeCover()
 
 	if isCoverOpen then
 		return
+	end
+
+	for _, v in ipairs(coverContainer:GetChildren()) do
+		v.Visible = v.Name == "Boot"
 	end
 
 	coverContainer.Rotation = 0
@@ -133,7 +141,7 @@ function Phone.Boot()
 
 	isBooting = true
 
-	ContentProvider:PreloadAsync(background:GetChildren())
+	ContentProvider:PreloadAsync(background:GetDescendants())
 
 	openPhoneTween:Play()
 	openPhoneTween.Completed:Wait()
@@ -212,7 +220,7 @@ local function initSideButtons(appName)
 		button2.Visible = false
 	end
 
-	if appName == "Volume" then
+	if appName == "Volume" or appName == "Settings" then
 		local closeConnection = button1.TextButton.Activated:Once(function()
 			Phone.CloseApp(appName)
 		end)
