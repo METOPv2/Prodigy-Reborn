@@ -1,34 +1,10 @@
---!strict
-local Players = game:GetService("Players")
+local container = game.Players.LocalPlayer.PlayerGui:WaitForChild("Phone").Background.Cover.Container.Apps
+local uiPageLayout = container.Pages.UIPageLayout
 
-local phoneGui = Players.LocalPlayer.PlayerGui:WaitForChild("Phone") :: ScreenGui & {
-    Background: ImageLabel & {
-        Cover: ImageLabel & {
-            Container: CanvasGroup & {
-                Pages: Frame & {
-                    UIPageLayout: UIPageLayout,
-                },
-                Previous: Frame & {
-                    TextButton: TextButton,
-                },
-                Next: Frame & {
-                    TextButton: TextButton,
-                },
-            },
-        },
-    },
-}
-local nextPageButton = phoneGui.Background.Cover.Container.Next.TextButton
-local previousPageButton = phoneGui.Background.Cover.Container.Previous.TextButton
-local uiPageLayout = phoneGui.Background.Cover.Container.Pages.UIPageLayout
-
-local function nextPage(): ()
+container.Next.TextButton.Activated:Connect(function()
     uiPageLayout:Next()
-end
+end)
 
-local function previousPage(): ()
+container.Previous.TextButton.Activated:Connect(function()
     uiPageLayout:Previous()
-end
-
-nextPageButton.Activated:Connect(nextPage)
-previousPageButton.Activated:Connect(previousPage)
+end)

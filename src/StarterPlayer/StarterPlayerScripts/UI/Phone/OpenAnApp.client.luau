@@ -1,52 +1,24 @@
---!strict
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Phone = require(game.ReplicatedStorage:WaitForChild("Source").ModuleScripts.Phone)
+local apps = game.Players.LocalPlayer.PlayerGui:WaitForChild("Phone").Background.Cover.Container.Apps.Pages
 
-local Phone = require(ReplicatedStorage:WaitForChild("Source").ModuleScripts.Phone)
+for _, page in ipairs(apps:GetChildren()) do
+	if not page:IsA("Frame") then
+		continue
+	end
 
-local phoneGui = Players.LocalPlayer.PlayerGui:WaitForChild("Phone") :: ScreenGui & {
-    Background: ImageLabel & {
-        Cover: ImageLabel & {
-            Container: CanvasGroup & {
-                Pages: Frame,
-            },
-        },
-        Menu: ImageLabel & {
-            Container: ImageLabel & {
-                Apps: Folder,
-            },
-        },
-    },
-}
-local apps = phoneGui.Background.Menu.Container.Apps
-local pages = phoneGui.Background.Cover.Container.Pages
+	for _, app in ipairs(page:GetChildren()) do
+		if not app:IsA("Frame") then
+			continue
+		end
 
-local function isItAnApp(instance: Instance): boolean
-    return apps:FindFirstChild(instance.Name) ~= nil
-end
+		local button = app:FindFirstChild("TextButton")
 
-for _, v in ipairs(pages:GetChildren()) do
-    if not v:IsA("Frame") then
-        continue
-    end
+		if not button then
+			continue
+		end
 
-    local page = v :: Frame & {
-        [string]: Frame & {
-            TextButton: TextButton,
-        },
-    }
-
-    for _, v in ipairs(page:GetChildren()) do
-        if not v:IsA("Frame") or not isItAnApp(v) then
-            continue
-        end
-
-        local app = v :: Frame & {
-            TextButton: TextButton,
-        }
-
-        app.TextButton.Activated:Connect(function()
-            Phone.OpenAnApp(app.Name)
-        end)
-    end
+		button.Activated:Connect(function()
+			Phone.OpenApp(app.Name)
+		end)
+	end
 end

@@ -1,18 +1,10 @@
---!strict
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-
-local player = Players.LocalPlayer
-local playerGui = player.PlayerGui
-local phoneGui = playerGui:WaitForChild("Phone") :: ScreenGui
-local phoneBackground = phoneGui:FindFirstChild("Background") :: ImageLabel
-local cover = phoneBackground:FindFirstChild("Cover") :: ImageLabel
+local player = game.Players.LocalPlayer
+local phoneBackground = player.PlayerGui:WaitForChild("Phone").Background
+local mouse = player:GetMouse()
 
 local dragging = false
 local dragStart = Vector2.zero
 local guiStartPos = UDim2.new(0, 0, 0, 0)
-
-local mouse = player:GetMouse()
 
 local function onInputBegan(input: InputObject)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -29,11 +21,11 @@ local function onInputBegan(input: InputObject)
     end
 end
 
-for _, zone: GuiObject in ipairs({ cover, phoneBackground }) do
+for _, zone: GuiObject in ipairs({ phoneBackground.Cover, phoneBackground }) do
     zone.InputBegan:Connect(onInputBegan)
 end
 
-UserInputService.InputEnded:Connect(function(input)
+game.UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = false
     end

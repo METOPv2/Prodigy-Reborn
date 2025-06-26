@@ -1,4 +1,12 @@
-# General Formatting
-indent_type = "Spaces"      # "Spaces" or "Tabs"
-indent_width = 4            # Number of spaces per indentation level
-column_width = 150          # Maximum column width before wrapping
+syntax = "All"
+column_width = 150
+line_endings = "Unix"
+indent_type = "Tabs"
+indent_width = 4
+quote_style = "AutoPreferDouble"
+call_parentheses = "Always"
+collapse_simple_statement = "Never"
+space_after_function_names = "Never"
+
+[sort_requires]
+enabled = false
