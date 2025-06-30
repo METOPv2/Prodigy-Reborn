@@ -8,7 +8,7 @@ local getFriendsDataRemoteFunction = ReplicatedStorage.RemoteFunctions.GetFriend
 
 getFriendsDataRemoteFunction.OnServerInvoke = function(_, friendUserId)
 	if not tonumber(friendUserId) then
-		return
+		return false, "The server requires a user id of a number type, got " .. type(friendUserId) .. " type."
 	end
 
 	local friend = Players:GetPlayerByUserId(friendUserId)

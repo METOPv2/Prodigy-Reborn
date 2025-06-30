@@ -11,6 +11,12 @@
       "Source": {
         "$path": "src/ReplicatedStorage"
       },
+      "Binds": {
+        "$className": "Folder",
+        "OpenChat": {
+          "$className": "BindableEvent"
+        }
+      },
       "RemoteFunctions": {
         "$className": "Folder",
         "CheckUsername": {
@@ -18,10 +24,22 @@
         },
         "GetFriendData": {
           "$className": "RemoteFunction"
+        },
+        "GetChats": {
+          "$className": "RemoteFunction"
         }
       },
       "RemoteEvents": {
         "$className": "Folder",
+        "ChatCreated": {
+          "$className": "RemoteEvent"
+        },
+        "CreateChat": {
+          "$className": "RemoteEvent"
+        },
+        "SendMessage": {
+          "$className": "RemoteEvent"
+        },
         "ChangeSettings": {
           "$className": "RemoteEvent"
         },

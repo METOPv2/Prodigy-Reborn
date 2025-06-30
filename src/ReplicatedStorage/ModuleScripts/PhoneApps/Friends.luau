@@ -12,12 +12,50 @@ local coverContainer = phoneBackground.Cover.Container
 local muteScreen = coverContainer.Mute
 local friendInfo = coverContainer.FriendInfo
 local friendInfoMain = friendInfo.Main
-local searchBox = coverContainer.Friends.SearchBox
-local failedToOpenPlayerProfile = coverContainer.Friends.FailedToOpenPlayerProfile
+local friendsCover = coverContainer.Friends
+local searchBox = friendsCover.SearchBox
+local filter = friendsCover.Filter
+local failedToOpenPlayerProfile = friendsCover.FailedToOpenPlayerProfile
 
 local friendTemplate = ReplicatedStorage:WaitForChild("Assets").UI.Phone.FriendTemplate
 
 local Friends = {}
+local refreshedTimes = 0
+local showOnlyWhoJoined = false
+
+friendsHolder.ChildAdded:Connect(function()
+	noFriendsLabel.Visible = #friendsHolder:GetChildren() == 3
+end)
+
+friendsHolder.ChildRemoved:Connect(function()
+	noFriendsLabel.Visible = #friendsHolder:GetChildren() == 3
+end)
+
+local function updateFrameVisibility(frame)
+	if showOnlyWhoJoined then
+		frame.Visible = frame.Thumbnail.JoinedTheGame.Visible
+	else
+		frame.Visible = true
+	end
+
+	if searchBox.Text ~= "" then
+		frame.Visible = frame.DisplayName:lower():find(searchBox.Text:lower()) ~= nil
+	end
+end
+
+filter.OnlyPlayersWhoJoined.ImageButton.ImageLabel.Visible = false
+filter.OnlyPlayersWhoJoined.ImageButton.Activated:Connect(function()
+	showOnlyWhoJoined = not showOnlyWhoJoined
+	filter.OnlyPlayersWhoJoined.ImageButton.ImageLabel.Visible = showOnlyWhoJoined
+
+	for _, v in ipairs(friendsHolder:GetChildren()) do
+		if not v:IsA("Frame") then
+			continue
+		end
+
+		updateFrameVisibility(v)
+	end
+end)
 
 local function abbreviateSeconds(seconds)
 	if seconds < 60 then
@@ -85,11 +123,15 @@ searchBox:GetPropertyChangedSignal("Text"):Connect(function()
 			break
 		end
 
-		v.Visible = v.UserName.Text:lower():find(text:lower()) ~= nil or v.DisplayName.Text:lower():find(text:lower()) ~= nil
+		v.Visible = v.DisplayName.Text:lower():find(text:lower()) ~= nil
 	end
 end)
 
 function Friends.Refresh()
+	refreshedTimes += 1
+
+	local startedRefreshingAt = refreshedTimes
+
 	for _, v in ipairs(friendsHolder:GetChildren()) do
 		if v:IsA("Frame") then
 			v:Destroy()
@@ -97,11 +139,17 @@ function Friends.Refresh()
 	end
 
 	for _, friend in ipairs(player:GetFriendsOnline()) do
+		if refreshedTimes ~= startedRefreshingAt then
+			break
+		end
+
+		local success, data = getFriendDataRemoteFunction:InvokeServer(friend.VisitorId)
+
 		local playerFrame = friendTemplate:Clone()
 		playerFrame.Name = friend.VisitorId
 		playerFrame.Thumbnail.Image = Players:GetUserThumbnailAsync(friend.VisitorId, Enum.ThumbnailType.AvatarBust, Enum.ThumbnailSize.Size48x48)
-		playerFrame.UserName.Text = friend.UserName
-		playerFrame.DisplayName.Text = friend.DisplayName
+		playerFrame.DisplayName.Text = data and data.Username or friend.DisplayName
+		playerFrame.Thumbnail.JoinedTheGame.Visible = success
 
 		if friend.IsOnline then
 			if friend.LocationType == 1 or friend.LocationType == 4 or friend.LocationType == 5 then
@@ -123,11 +171,12 @@ function Friends.Refresh()
 			playerFrame.OnlineStatus.TextColor3 = Color3.fromRGB(30, 30, 30)
 		end
 
+		updateFrameVisibility(playerFrame)
+
 		playerFrame.OpeningContainer.TextButton.Activated:Connect(function()
 			openPlayerProfile(playerFrame)
 		end)
-		playerFrame.Visible = friend.UserName:lower():find(searchBox.Text:lower()) ~= nil
-			or friend.DisplayName:lower():find(searchBox.Text:lower()) ~= nil
+
 		playerFrame.Parent = friendsHolder
 	end
 
@@ -154,32 +203,34 @@ function Friends.Refresh()
 	local friendPages = game.Players:GetFriendsAsync(player.UserId)
 	local items = {}
 	for item, _pageNo in iterPageItems(friendPages) do
+		if refreshedTimes ~= startedRefreshingAt then
+			break
+		end
+
 		table.insert(items, item)
 	end
 
-	if #items == 0 then
-		noFriendsLabel.Visible = true
-		noFriendsLabel.Text = "No friends online"
-		return
-	else
-		noFriendsLabel.Visible = false
-	end
-
 	for _, friend in ipairs(items) do
-		local friendFrame = friendTemplate:Clone()
-		friendFrame.Name = friend.Id
-		friendFrame.UserName.Text = friend.Username
-		friendFrame.DisplayName.Text = friend.DisplayName
-		friendFrame.Thumbnail.Image = game.Players:GetUserThumbnailAsync(friend.Id, Enum.ThumbnailType.AvatarBust, Enum.ThumbnailSize.Size48x48)
-		friendFrame.OnlineStatus.Text = "Offline"
+		if refreshedTimes ~= startedRefreshingAt then
+			break
+		end
 
-		friendFrame.OpeningContainer.TextButton.Activated:Connect(function()
-			openPlayerProfile(friendFrame)
+		local success, data = getFriendDataRemoteFunction:InvokeServer(friend.Id)
+
+		local playerFrame = friendTemplate:Clone()
+		playerFrame.Name = friend.Id
+		playerFrame.DisplayName.Text = data and data.Username or friend.DisplayName
+		playerFrame.Thumbnail.Image = game.Players:GetUserThumbnailAsync(friend.Id, Enum.ThumbnailType.AvatarBust, Enum.ThumbnailSize.Size48x48)
+		playerFrame.OnlineStatus.Text = "Offline"
+		playerFrame.Thumbnail.JoinedTheGame.Visible = success
+
+		playerFrame.OpeningContainer.TextButton.Activated:Connect(function()
+			openPlayerProfile(playerFrame)
 		end)
 
-		friendFrame.Visible = friendFrame.UserName.Text:lower():find(searchBox.Text:lower()) ~= nil
-			or friend.DisplayName:lower():find(searchBox.Text:lower()) ~= nil
-		friendFrame.Parent = friendsHolder
+		updateFrameVisibility(playerFrame)
+
+		playerFrame.Parent = friendsHolder
 	end
 end
 

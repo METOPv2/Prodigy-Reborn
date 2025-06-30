@@ -3,7 +3,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local AppSideButtons = require(game.ReplicatedStorage:WaitForChild("Source").Settings.AppSideButtons)
-local FriendsApp = require(ReplicatedStorage:WaitForChild("Source").ModuleScripts.PhoneApps.Friends)
+local phoneApps = ReplicatedStorage:WaitForChild("Source").ModuleScripts.PhoneApps
+local FriendsApp = require(phoneApps.Friends)
+local NewChatMenu = require(phoneApps.NewChatMenu)
+local ChatApp = require(phoneApps.Chat)
+
+local openChatBindableEvent = ReplicatedStorage:WaitForChild("Binds").OpenChat
 
 local background = game.Players.LocalPlayer.PlayerGui:WaitForChild("Phone").Background
 
@@ -75,11 +80,11 @@ end
 
 local function closeAllApps()
 	for _, app in ipairs(apps:GetChildren()) do
-		if not app:IsA("Frame") then
-			continue
-		end
-
 		Phone.CloseApp(app.Name)
+	end
+
+	for _, app in ipairs(coverContainer:GetChildren()) do
+		app.Visible = false
 	end
 end
 
@@ -143,22 +148,28 @@ function Phone.Boot()
 
 	ContentProvider:PreloadAsync(background:GetDescendants())
 
+	for _, v in ipairs(coverContainer:GetChildren()) do
+		v.Visible = v.Name == "Boot"
+	end
+
 	openPhoneTween:Play()
 	openPhoneTween.Completed:Wait()
 
-	colorlessLogoRollTween:Play()
-	colorlessLogoRollTween.Completed:Wait()
+	if not game:GetService("RunService"):IsStudio() then
+		colorlessLogoRollTween:Play()
+		colorlessLogoRollTween.Completed:Wait()
 
-	logoTween:Play()
-	lightTweenIn:Play()
-	task.wait(math.max(logoTweenInfo.Time, lightTweenInfoIn.Time))
+		logoTween:Play()
+		lightTweenIn:Play()
+		task.wait(math.max(logoTweenInfo.Time, lightTweenInfoIn.Time))
 
-	bootPhoneSFX:Play()
+		bootPhoneSFX:Play()
 
-	lightTweenOut:Play()
-	lightTweenOut.Completed:Wait()
+		lightTweenOut:Play()
+		lightTweenOut.Completed:Wait()
 
-	task.wait(0.5)
+		task.wait(0.5)
+	end
 
 	bootUi.Visible = false
 	appsUi.Visible = true
@@ -201,7 +212,17 @@ function Phone.TogglePhone()
 	end
 end
 
+local function openAppsMenu()
+	closeAllApps()
+
+	coverContainer.Apps.Visible = true
+end
+
 local function initSideButtons(appName)
+	for _, connection: RBXScriptConnection in ipairs(buttonConnections) do
+		connection:Disconnect()
+	end
+
 	local buttonsData = AppSideButtons[appName:lower()]
 
 	if buttonsData.button1 then
@@ -223,22 +244,58 @@ local function initSideButtons(appName)
 	if appName == "Volume" or appName == "Settings" then
 		local closeConnection = button1.TextButton.Activated:Once(function()
 			Phone.CloseApp(appName)
+			openAppsMenu()
 		end)
 
 		table.insert(buttonConnections, closeConnection)
 	elseif appName == "Friends" then
 		local closeConnection = button1.TextButton.Activated:Once(function()
 			Phone.CloseApp(appName)
+			openAppsMenu()
 		end)
 
-		local refreshConnection = button2.TextButton.Activated:Once(FriendsApp.Refresh)
+		local refreshConnection = button2.TextButton.Activated:Connect(FriendsApp.Refresh)
 
 		table.insert(buttonConnections, closeConnection)
 		table.insert(buttonConnections, refreshConnection)
+	elseif appName == "Messages" then
+		local closeConnection = button1.TextButton.Activated:Once(function()
+			Phone.CloseApp(appName)
+			openAppsMenu()
+		end)
+
+		local newChatMenuConnection = button2.TextButton.Activated:Once(function()
+			Phone.OpenApp("NewChatMenu")
+		end)
+
+		table.insert(buttonConnections, closeConnection)
+		table.insert(buttonConnections, newChatMenuConnection)
+	elseif appName == "NewChatMenu" then
+		NewChatMenu.RefreshPlayerList()
+
+		local closeConnection = button1.TextButton.Activated:Once(function()
+			Phone.OpenApp("Messages")
+		end)
+
+		local refreshConnection = button2.TextButton.Activated:Connect(NewChatMenu.RefreshPlayerList)
+
+		table.insert(buttonConnections, closeConnection)
+		table.insert(buttonConnections, refreshConnection)
+	elseif appName == "Chat" then
+		local closeConnection = button1.TextButton.Activated:Once(function()
+			Phone.OpenApp("Messages")
+		end)
+
+		local sendMessageConnection = button2.TextButton.Activated:Connect(ChatApp.Message)
+
+		table.insert(buttonConnections, closeConnection)
+		table.insert(buttonConnections, sendMessageConnection)
 	end
 end
 
 function Phone.OpenApp(appName)
+	closeAllApps()
+
 	local menuPart = apps:FindFirstChild(appName)
 
 	if not menuPart then
@@ -272,5 +329,11 @@ function Phone.CloseApp(appName)
 		connection:Disconnect()
 	end
 end
+
+openChatBindableEvent.Event:Connect(function()
+	Phone.OpenApp("Chat")
+end)
+
+Phone.Boot()
 
 return Phone
