@@ -31,6 +31,24 @@
       },
       "RemoteEvents": {
         "$className": "Folder",
+        "AcceptTrade": {
+          "$className": "RemoteEvent"
+        },
+        "UpdateCoins":{
+          "$className": "RemoteEvent"
+        },
+        "DeclineTrade": {
+          "$className": "RemoteEvent"
+        },
+        "SendTradeRequest": {
+          "$className": "RemoteEvent"
+        },
+        "AnswerTrade": {
+          "$className": "RemoteEvent"
+        },
+        "OpenTrade": {
+          "$className": "RemoteEvent"
+        },
         "ChatCreated": {
           "$className": "RemoteEvent"
         },

@@ -51,4 +51,36 @@ return {
 			ImageId = "rbxassetid://102503786262211",
 		},
 	},
+	tradingplayers = {
+		button1 = {
+			BackgroundColor = Color3.fromRGB(48, 48, 48),
+			ImageId = "rbxassetid://116870917498847",
+		},
+	},
+	trading = {
+		button1 = {
+			BackgroundColor = Color3.fromRGB(48, 48, 48),
+			ImageId = "rbxassetid://121960098138024",
+		},
+		button2 = {
+			BackgroundColor = Color3.fromRGB(0, 198, 23),
+			ImageId = "rbxassetid://121583663172779",
+		},
+	},
+	tradingoptions = {
+		button1 = {
+			BackgroundColor = Color3.fromRGB(48, 48, 48),
+			ImageId = "rbxassetid://116870917498847",
+		},
+	},
+	tradingcoins = {
+		button1 = {
+			BackgroundColor = Color3.fromRGB(48, 48, 48),
+			ImageId = "rbxassetid://116870917498847",
+		},
+		button2 = {
+			BackgroundColor = Color3.fromRGB(0, 198, 23),
+			ImageId = "rbxassetid://121583663172779",
+		},
+	},
 }

@@ -1,4 +1,5 @@
 local ContentProvider = game:GetService("ContentProvider")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
@@ -10,17 +11,21 @@ local ChatApp = require(phoneApps.Chat)
 
 local openChatBindableEvent = ReplicatedStorage:WaitForChild("Binds").OpenChat
 
-local background = game.Players.LocalPlayer.PlayerGui:WaitForChild("Phone").Background
+local declineTradeRemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvents").DeclineTrade
+local updateCoinsRemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvents").UpdateCoins
+local acceptTradeRemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvents").AcceptTrade
 
+local background = game.Players.LocalPlayer.PlayerGui:WaitForChild("Phone").Background
 local button1 = background.Button1
 local button2 = background.Button2
-
 local cover = background.Cover
+local apps = background.Menu.Container.Apps
+local trading = apps.Trading
+local tradingCoins = apps.TradingCoins.Coins
+
 local coverContainer = cover.Container
 local bootUi = coverContainer.Boot
 local appsUi = coverContainer.Apps
-
-local apps = background.Menu.Container.Apps
 
 local sfx = game.SoundService.SFX
 local bootPhoneSFX = sfx.PhoneTurnOn
@@ -213,6 +218,7 @@ function Phone.TogglePhone()
 end
 
 local function openAppsMenu()
+	print("open apps menu")
 	closeAllApps()
 
 	coverContainer.Apps.Visible = true
@@ -241,7 +247,7 @@ local function initSideButtons(appName)
 		button2.Visible = false
 	end
 
-	if appName == "Volume" or appName == "Settings" then
+	if appName == "Volume" or appName == "Settings" or appName == "TradingPlayers" then
 		local closeConnection = button1.TextButton.Activated:Once(function()
 			Phone.CloseApp(appName)
 			openAppsMenu()
@@ -290,6 +296,47 @@ local function initSideButtons(appName)
 
 		table.insert(buttonConnections, closeConnection)
 		table.insert(buttonConnections, sendMessageConnection)
+	elseif appName == "Trading" then
+		local closeConnection = button1.TextButton.Activated:Once(function()
+			Phone.OpenApp("TradingOptions")
+		end)
+
+		local acceptTradeConnection = button2.TextButton.Activated:Connect(function()
+			acceptTradeRemoteEvent:FireServer()
+		end)
+
+		table.insert(buttonConnections, closeConnection)
+		table.insert(buttonConnections, acceptTradeConnection)
+	elseif appName == "TradingOptions" then
+		local closeConnection = button1.TextButton.Activated:Once(function()
+			Phone.OpenApp("Trading")
+		end)
+
+		table.insert(buttonConnections, closeConnection)
+	elseif appName == "TradingCoins" then
+		local closeConnection = button1.TextButton.Activated:Once(function()
+			Phone.OpenApp("TradingOptions")
+		end)
+
+		local updateCoinsConnection = button2.TextButton.Activated:Connect(function()
+			local coins = tonumber(tradingCoins.Text)
+
+			if not coins or coins < 0 or coins ~= coins then
+				return
+			end
+
+			coins = coins > Players.LocalPlayer.PlayerData.Money.Value and Players.LocalPlayer.PlayerData.Money.Value or coins
+
+			trading.Coins.TextLabel.Text = tostring(coins)
+
+			tradingCoins.Text = ""
+
+			Phone.OpenApp("Trading")
+			updateCoinsRemoteEvent:FireServer(coins)
+		end)
+
+		table.insert(buttonConnections, closeConnection)
+		table.insert(buttonConnections, updateCoinsConnection)
 	end
 end
 
@@ -334,6 +381,21 @@ openChatBindableEvent.Event:Connect(function()
 	Phone.OpenApp("Chat")
 end)
 
+declineTradeRemoteEvent.OnClientEvent:Connect(openAppsMenu)
+acceptTradeRemoteEvent.OnClientEvent:Connect(openAppsMenu)
+tradingCoins.FocusLost:Connect(function()
+	local coins = tonumber(tradingCoins.Text)
+
+	if not coins or coins < 0 or coins ~= coins then
+		return
+	end
+
+	coins = coins > Players.LocalPlayer.PlayerData.Money.Value and Players.LocalPlayer.PlayerData.Money.Value or coins
+
+	trading.Coins.TextLabel.Text = tostring(coins)
+end)
+
 Phone.Boot()
+Phone.OpenApp("TradingPlayers")
 
 return Phone
