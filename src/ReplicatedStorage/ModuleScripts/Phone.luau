@@ -3,16 +3,19 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
+local MeOffering = require(ReplicatedStorage.Source.TradingApp.MeOffering)
 local AppSideButtons = require(game.ReplicatedStorage:WaitForChild("Source").Settings.AppSideButtons)
 local phoneApps = ReplicatedStorage:WaitForChild("Source").ModuleScripts.PhoneApps
 local FriendsApp = require(phoneApps.Friends)
 local NewChatMenu = require(phoneApps.NewChatMenu)
 local ChatApp = require(phoneApps.Chat)
+local Trading = require(phoneApps.Trading)
 
 local openChatBindableEvent = ReplicatedStorage:WaitForChild("Binds").OpenChat
 
 local declineTradeRemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvents").DeclineTrade
 local updateCoinsRemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvents").UpdateCoins
+local updateItemsRemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvents").UpdateItems
 local acceptTradeRemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvents").AcceptTrade
 
 local background = game.Players.LocalPlayer.PlayerGui:WaitForChild("Phone").Background
@@ -218,7 +221,6 @@ function Phone.TogglePhone()
 end
 
 local function openAppsMenu()
-	print("open apps menu")
 	closeAllApps()
 
 	coverContainer.Apps.Visible = true
@@ -331,12 +333,26 @@ local function initSideButtons(appName)
 
 			tradingCoins.Text = ""
 
+			Trading.Init()
 			Phone.OpenApp("Trading")
 			updateCoinsRemoteEvent:FireServer(coins)
 		end)
 
 		table.insert(buttonConnections, closeConnection)
 		table.insert(buttonConnections, updateCoinsConnection)
+	elseif appName == "TradingItems" then
+		local closeConnection = button1.TextButton.Activated:Once(function()
+			Phone.OpenApp("TradingOptions")
+		end)
+
+		local updateItemsConnection = button2.TextButton.Activated:Connect(function()
+			Phone.OpenApp("Trading")
+			Trading.Init()
+			updateItemsRemoteEvent:FireServer(MeOffering.items)
+		end)
+
+		table.insert(buttonConnections, closeConnection)
+		table.insert(buttonConnections, updateItemsConnection)
 	end
 end
 
@@ -392,7 +408,7 @@ tradingCoins.FocusLost:Connect(function()
 
 	coins = coins > Players.LocalPlayer.PlayerData.Money.Value and Players.LocalPlayer.PlayerData.Money.Value or coins
 
-	trading.Coins.TextLabel.Text = tostring(coins)
+	MeOffering.coins = coins
 end)
 
 Phone.Boot()

@@ -37,6 +37,9 @@
         "UpdateCoins":{
           "$className": "RemoteEvent"
         },
+        "UpdateItems":{
+          "$className": "RemoteEvent"
+        },
         "DeclineTrade": {
           "$className": "RemoteEvent"
         },

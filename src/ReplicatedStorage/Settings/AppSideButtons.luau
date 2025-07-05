@@ -83,4 +83,14 @@ return {
 			ImageId = "rbxassetid://121583663172779",
 		},
 	},
+	tradingitems = {
+		button1 = {
+			BackgroundColor = Color3.fromRGB(48, 48, 48),
+			ImageId = "rbxassetid://116870917498847",
+		},
+		button2 = {
+			BackgroundColor = Color3.fromRGB(0, 198, 23),
+			ImageId = "rbxassetid://121583663172779",
+		},
+	},
 }
