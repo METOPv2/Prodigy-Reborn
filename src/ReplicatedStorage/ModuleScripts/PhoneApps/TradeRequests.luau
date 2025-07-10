@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local TradeRequests = {}
 
-local phoneAssets = ReplicatedStorage:WaitForChild("Assets").assets.UI.Phone
+local phoneAssets = ReplicatedStorage:WaitForChild("Assets").UI.Phone
 local tradingPartnerTemplate = phoneAssets.TradingPartnerTemplate
 local tradeRequestTemplate = phoneAssets.TradeRequestTemplate
 

@@ -15,5 +15,6 @@
         "**/init.lua": "${dirname} (${filename}.${extname})",
         "**/init.luau": "${dirname} (${filename}.${extname})"
     },
-    "stylua.targetReleaseVersion": "latest"
+    "stylua.targetReleaseVersion": "latest",
+    "testez-companion.runTestsOnSave": true
 }
